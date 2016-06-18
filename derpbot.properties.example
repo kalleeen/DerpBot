@@ -1,0 +1,7 @@
+# Networks
+# network.<name of network>=<hostname or ip>:<port>
+network.ExampleNet=irc.example.com:6667
+
+# Channels
+# channels.<name of network>=<channels separated by comma>
+channels.ExampleNet=\#yolo,\#swag
