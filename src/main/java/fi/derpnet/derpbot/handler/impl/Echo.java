@@ -1,5 +1,6 @@
 package fi.derpnet.derpbot.handler.impl;
 
+import fi.derpnet.derpbot.connector.IrcConnector;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.handler.SimpleMessageHandler;
 
@@ -15,7 +16,7 @@ public class Echo implements SimpleMessageHandler {
     }
 
     @Override
-    public String handle(String sender, String recipient, String input) {
+    public String handle(String sender, String recipient, String input, IrcConnector ircConnector) {
         return input.startsWith("!echo ") ? input.substring(6) : null;
     }
 

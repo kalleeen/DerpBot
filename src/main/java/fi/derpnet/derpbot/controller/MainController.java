@@ -3,9 +3,11 @@ package fi.derpnet.derpbot.controller;
 import fi.derpnet.derpbot.bean.RawMessage;
 import fi.derpnet.derpbot.connector.IrcConnector;
 import fi.derpnet.derpbot.handler.HandlerRegistry;
-import fi.derpnet.derpbot.handler.RawMessageAdapter;
+import fi.derpnet.derpbot.handler.SimpleMessageAdapter;
 import fi.derpnet.derpbot.handler.RawMessageHandler;
 import fi.derpnet.derpbot.handler.SimpleMessageHandler;
+import fi.derpnet.derpbot.handler.SimpleMultiLineMessageAdapter;
+import fi.derpnet.derpbot.handler.SimpleMultiLineMessageHandler;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -62,16 +64,22 @@ public class MainController {
         LOG.info("Loading handlers");
         rawMessageHandlers = new LinkedList<>();
         HandlerRegistry.handlers.stream().forEach((Class c) -> {
-            LOG.info("Registering message handler "+c.getSimpleName());
+            LOG.info("Registering message handler " + c.getSimpleName());
             if (RawMessageHandler.class.isAssignableFrom(c)) {
                 try {
                     rawMessageHandlers.add((RawMessageHandler) c.newInstance());
                 } catch (InstantiationException | IllegalAccessException ex) {
                     LOG.error("Error initializing handler " + c.getName(), ex);
                 }
+            } else if (SimpleMultiLineMessageHandler.class.isAssignableFrom(c)) {
+                try {
+                    rawMessageHandlers.add(new SimpleMultiLineMessageAdapter((SimpleMultiLineMessageHandler) c.newInstance()));
+                } catch (InstantiationException | IllegalAccessException ex) {
+                    LOG.error("Error initializing handler " + c.getName(), ex);
+                }
             } else if (SimpleMessageHandler.class.isAssignableFrom(c)) {
                 try {
-                    rawMessageHandlers.add(new RawMessageAdapter((SimpleMessageHandler) c.newInstance()));
+                    rawMessageHandlers.add(new SimpleMessageAdapter((SimpleMessageHandler) c.newInstance()));
                 } catch (InstantiationException | IllegalAccessException ex) {
                     LOG.error("Error initializing handler " + c.getName(), ex);
                 }
@@ -87,7 +95,7 @@ public class MainController {
         ircConnectors = new LinkedList<>();
         Set<Entry<String, String>> networkEntries = config.entrySet().stream().filter(e -> e.getKey().startsWith("network.")).collect(Collectors.toSet());
         for (Entry<String, String> entry : networkEntries) {
-            String networkName = entry.getKey().substring(entry.getKey().indexOf('.')+1); // +1 because we don't want the dot
+            String networkName = entry.getKey().substring(entry.getKey().indexOf('.') + 1); // +1 because we don't want the dot
             String[] entrySplit = entry.getValue().split(":");
             String hostname = entrySplit[0];
             int port = Integer.parseInt(entrySplit[1]);
@@ -124,6 +132,6 @@ public class MainController {
     }
 
     public List<RawMessage> handleIncoming(IrcConnector origin, RawMessage message) {
-        return rawMessageHandlers.stream().map(h -> h.handle(message)).filter(l -> l != null).flatMap(l -> l.stream()).collect(Collectors.toList());
+        return rawMessageHandlers.stream().map(h -> h.handle(message, origin)).filter(l -> l != null).flatMap(l -> l.stream()).collect(Collectors.toList());
     }
 }
