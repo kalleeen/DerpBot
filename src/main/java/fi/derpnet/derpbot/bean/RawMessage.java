@@ -47,6 +47,20 @@ public class RawMessage {
     }
 
     /**
+     * Constructs a new raw message with the provided values
+     *
+     * @param prefix (Optional) prefix without leading semicolon. Clients SHOULD
+     * NOT use a prefix when sending a message; if they use one, the only valid
+     * prefix is the registered nickname associated with the client.
+     * @param command command
+     * @param parameters parameters (up to 15). Note: the leading semicolon must
+     * be present in the last parameter if it requires one
+     */
+    public RawMessage(String prefix, String command, String... parameters) {
+        this(prefix, command, Arrays.asList(parameters));
+    }
+
+    /**
      * Constructs a new raw message from a String containing the raw message
      *
      * @param rawLine The message as specified in RFC 2812

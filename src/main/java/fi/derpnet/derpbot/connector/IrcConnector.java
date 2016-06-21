@@ -9,20 +9,27 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.log4j.Logger;
 
 public class IrcConnector {
-    
+
+    public static final int SEND_DELAY_MS = 2500;
+
     public final String networkName;
     public final String hostname;
     public final int port;
     public final String user;
     public final String realname;
+
+    private static final Logger LOG = Logger.getLogger(IrcConnector.class);
+
     private final MainController controller;
     private String nick;
-    private ConnectionThread connectionThread;
-    private static final Logger LOG = Logger.getLogger(IrcConnector.class);
-    
+    private ReceiverThread receiverThread;
+    private SenderThread senderThread;
+
     public IrcConnector(String networkName, String hostname, int port, String user, String realname, String nick, MainController controller) {
         this.networkName = networkName;
         this.hostname = hostname;
@@ -32,17 +39,17 @@ public class IrcConnector {
         this.nick = nick;
         this.controller = controller;
     }
-    
+
     public void connect() throws IOException {
         LOG.info("Connecting to " + networkName + " on " + hostname + " port " + port);
         Socket socket = new Socket(hostname, port);
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        
+
         writer.write("NICK " + nick + "\r\n");
         writer.write("USER " + user + " 8 * :" + realname + "\r\n");
         writer.flush();
-        
+
         String line;
         String pendingNick = nick;
         while ((line = reader.readLine()) != null) {
@@ -60,36 +67,26 @@ public class IrcConnector {
         if (!nick.equals(pendingNick)) {
             nick = pendingNick;
         }
-        
-        connectionThread = new ConnectionThread(writer, reader);
-        connectionThread.start();
+
+        receiverThread = new ReceiverThread(reader);
+        receiverThread.start();
+        senderThread = new SenderThread(writer);
+        senderThread.start();
     }
-    
+
     public void join(String channel) {
         LOG.info("Joining channel " + channel + " on " + networkName);
-        try {
-            writeMessage("JOIN " + channel);
-        } catch (IOException ex) {
-            LOG.error("Failed to join channel", ex);
-        }
+        senderThread.messageQueue.add(new RawMessage(null, "JOIN", channel));
     }
-    
-    private void writeMessage(String rawMsg) throws IOException {
-        // TODO add a synchronized queue to avoid being killed for flooding
-        connectionThread.writer.write(rawMsg);
-        connectionThread.writer.write("\r\n");
-    }
-    
-    class ConnectionThread extends Thread {
-        
-        private final BufferedWriter writer;
+
+    private class ReceiverThread extends Thread {
+
         private final BufferedReader reader;
-        
-        public ConnectionThread(BufferedWriter writer, BufferedReader reader) {
-            this.writer = writer;
+
+        public ReceiverThread(BufferedReader reader) {
             this.reader = reader;
         }
-        
+
         @Override
         public void run() {
             try {
@@ -99,23 +96,44 @@ public class IrcConnector {
                     if (line.toUpperCase().startsWith("PING ")) {
                         // We must respond to PINGs to avoid being disconnected.
                         // The response is written directly to avoid delay due to outbound message queue
-                        writer.write("PONG :" + line.substring(6) + "\r\n");
-                        writer.flush();
+                        senderThread.writer.write("PONG :" + line.substring(6) + "\r\n");
+                        senderThread.writer.flush();
                     }
                     List<RawMessage> responses = controller.handleIncoming(IrcConnector.this, new RawMessage(line));
                     if (responses != null) {
-                        responses.forEach(r -> {
-                            try {
-                                writeMessage(r.toString());
-                            } catch (IOException ex) {
-                                LOG.error("Failed to write message to " + networkName + " message: " + r.toString(), ex);
-                            }
-                        });
-                        writer.flush();
+                        senderThread.messageQueue.addAll(responses);
                     }
                 }
             } catch (IOException ex) {
                 LOG.error("Writes not working for network " + networkName + ". Connection lost?", ex);
+            }
+        }
+    }
+
+    private class SenderThread extends Thread {
+
+        private final BufferedWriter writer;
+        private final BlockingQueue<RawMessage> messageQueue;
+
+        public SenderThread(BufferedWriter writer) {
+            this.writer = writer;
+            messageQueue = new LinkedBlockingQueue<>();
+        }
+
+        @Override
+        public void run() {
+            while (!interrupted()) {
+                try {
+                    RawMessage nextMsg = messageQueue.take();
+                    writer.write(nextMsg.toString());
+                    writer.write("\r\n");
+                    writer.flush();
+                    sleep(SEND_DELAY_MS);
+                } catch (InterruptedException ex) {
+                    break;
+                } catch (IOException ex) {
+                    LOG.error("Writes not working for network " + networkName + ". Connection lost?", ex);
+                }
             }
         }
     }
