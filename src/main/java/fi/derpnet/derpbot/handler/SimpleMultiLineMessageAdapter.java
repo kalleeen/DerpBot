@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Adapter for using a SimpleMultiLineMessageHandler in place of a RawMessageHandler
+ * Adapter for using a SimpleMultiLineMessageHandler in place of a
+ * RawMessageHandler
  */
 public class SimpleMultiLineMessageAdapter implements RawMessageHandler {
 
@@ -36,7 +37,7 @@ public class SimpleMultiLineMessageAdapter implements RawMessageHandler {
                 // private message, reply to sender
                 responseRecipient = message.prefix.split("!")[0];
             }
-            return responseBodies.stream().map(msg -> new RawMessage(null, "PRIVMSG", Arrays.asList(responseRecipient, msg))).collect(Collectors.toList());
+            return responseBodies.stream().map(msg -> new RawMessage(null, "PRIVMSG", Arrays.asList(responseRecipient, ':' + msg))).collect(Collectors.toList());
         } else {
             return null;
         }
