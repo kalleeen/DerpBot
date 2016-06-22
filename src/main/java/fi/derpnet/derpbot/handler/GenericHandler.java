@@ -15,10 +15,18 @@ public interface GenericHandler {
     void init(MainController controller);
 
     /**
-     * Gets the help line for this handler, used in printing the help output.
-     * This should include the command prefix used to invoke this handler if one exists.
+     * Gets the command (prefix) used to invoke this handler. Used in printing
+     * the list of available commands.
      *
-     * @return The help line, or null to omit from all help prints
+     * @return The command (prefix), or null if this handler serves no command
+     */
+    String getCommand();
+
+    /**
+     * Gets the help line for this handler, used in printing the help output for
+     * the command.
+     *
+     * @return The help line, or null if there's no help
      */
     String getHelp();
 }

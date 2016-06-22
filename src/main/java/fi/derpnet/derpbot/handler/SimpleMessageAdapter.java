@@ -49,6 +49,11 @@ public class SimpleMessageAdapter implements RawMessageHandler {
     }
 
     @Override
+    public String getCommand() {
+        return handler.getCommand();
+    }
+
+    @Override
     public String getHelp() {
         return handler.getHelp();
     }

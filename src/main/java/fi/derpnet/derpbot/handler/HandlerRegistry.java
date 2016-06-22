@@ -10,5 +10,6 @@ public class HandlerRegistry {
         handlers.add(Echo.class);
         handlers.add(LinkTitle.class);
         handlers.add(MacFinder.class);
+        handlers.add(Help.class);
     }
 }

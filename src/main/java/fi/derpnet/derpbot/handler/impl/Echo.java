@@ -11,8 +11,13 @@ public class Echo implements SimpleMessageHandler {
     }
 
     @Override
+    public String getCommand() {
+        return "!echo";
+    }
+
+    @Override
     public String getHelp() {
-        return "!echo - Echo a message back";
+        return "Echoes a message back";
     }
 
     @Override

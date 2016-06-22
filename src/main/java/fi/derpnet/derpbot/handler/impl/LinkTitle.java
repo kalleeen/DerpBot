@@ -18,6 +18,11 @@ public class LinkTitle implements SimpleMultiLineMessageHandler {
     }
 
     @Override
+    public String getCommand() {
+        return null;
+    }
+
+    @Override
     public String getHelp() {
         return null;
     }

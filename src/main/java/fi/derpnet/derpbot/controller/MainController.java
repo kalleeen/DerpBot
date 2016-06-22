@@ -144,4 +144,8 @@ public class MainController {
     public List<RawMessage> handleIncoming(IrcConnector origin, RawMessage message) {
         return rawMessageHandlers.stream().map(h -> h.handle(message, origin)).filter(l -> l != null).flatMap(l -> l.stream()).collect(Collectors.toList());
     }
+
+    public List<RawMessageHandler> getRawMessageHandlers() {
+        return rawMessageHandlers;
+    }
 }

@@ -22,10 +22,15 @@ public class MacFinder implements SimpleMessageHandler {
             br.lines().forEach(line -> macs.put(line.toLowerCase(), line));
         }
     }
+
+    @Override
+    public String getCommand() {
+        return "!mac";
+    }
     
     @Override
     public String getHelp() {
-        return "!mac - searches for MAC addresses and their manufacturers";
+        return "Searches for MAC addresses and their manufacturers";
     }
     
     @Override
