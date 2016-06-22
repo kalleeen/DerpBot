@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import javax.net.ssl.SSLSocketFactory;
 import org.apache.log4j.Logger;
 
 public class IrcConnector {
@@ -20,6 +21,7 @@ public class IrcConnector {
     public final String networkName;
     public final String hostname;
     public final int port;
+    public final boolean ssl;
     public final String user;
     public final String realname;
 
@@ -30,10 +32,11 @@ public class IrcConnector {
     private ReceiverThread receiverThread;
     private SenderThread senderThread;
 
-    public IrcConnector(String networkName, String hostname, int port, String user, String realname, String nick, MainController controller) {
+    public IrcConnector(String networkName, String hostname, int port, boolean ssl, String user, String realname, String nick, MainController controller) {
         this.networkName = networkName;
         this.hostname = hostname;
         this.port = port;
+        this.ssl = ssl;
         this.user = user;
         this.realname = realname;
         this.nick = nick;
@@ -41,8 +44,13 @@ public class IrcConnector {
     }
 
     public void connect() throws IOException {
-        LOG.info("Connecting to " + networkName + " on " + hostname + " port " + port);
-        Socket socket = new Socket(hostname, port);
+        LOG.info("Connecting to " + networkName + " on " + hostname + " port " + port + (ssl ? "using SSL" : "without SSL"));
+        Socket socket;
+        if (ssl) {
+            socket = SSLSocketFactory.getDefault().createSocket(hostname, port);
+        } else {
+            socket = new Socket(hostname, port);
+        }
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
         BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
@@ -61,6 +69,9 @@ public class IrcConnector {
                 //TODO prettier alt nick generation
                 pendingNick = pendingNick + "_";
                 writer.write("NICK " + pendingNick + "\r\n");
+                writer.flush();
+            } else if (line.toUpperCase().startsWith("PING ")) {
+                writer.write("PONG :" + line.substring(6) + "\r\n");
                 writer.flush();
             }
         }

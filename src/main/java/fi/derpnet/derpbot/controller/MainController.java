@@ -97,10 +97,20 @@ public class MainController {
         for (Entry<String, String> entry : networkEntries) {
             String networkName = entry.getKey().substring(entry.getKey().indexOf('.') + 1); // +1 because we don't want the dot
             String[] entrySplit = entry.getValue().split(":");
-            String hostname = entrySplit[0];
-            int port = Integer.parseInt(entrySplit[1]);
+            String hostname;
+            int port;
+            boolean ssl;
+            if (entrySplit.length == 3 && entrySplit[0].equalsIgnoreCase("ssl")) {
+                hostname = entrySplit[1];
+                port = Integer.parseInt(entrySplit[2]);
+                ssl = true;
+            } else {
+                hostname = entrySplit[0];
+                port = Integer.parseInt(entrySplit[1]);
+                ssl = false;
+            }
             // TODO: configurable nick, username and realname
-            IrcConnector connector = new IrcConnector(networkName, hostname, port, "DerpBot", "DerpBot", "DerpBot", this);
+            IrcConnector connector = new IrcConnector(networkName, hostname, port, ssl, "DerpBot", "DerpBot", "DerpBot", this);
             ircConnectors.add(connector);
             try {
                 connector.connect();

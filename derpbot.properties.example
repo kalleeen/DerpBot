@@ -1,7 +1,9 @@
 # Networks
-# network.<name of network>=<hostname or ip>:<port>
+# network.<name of network>=<prefix with ssl: for encrypted connection><hostname or ip>:<port>
 network.ExampleNet=irc.example.com:6667
+network.AnotherExample=ssl:irc.example.org:6667
 
 # Channels
 # channels.<name of network>=<channels separated by comma>
 channels.ExampleNet=\#yolo,\#swag
+channels.AnotherExample=!shouting,\#derping
