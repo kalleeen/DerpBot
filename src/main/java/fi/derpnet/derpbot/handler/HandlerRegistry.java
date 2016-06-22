@@ -1,7 +1,6 @@
 package fi.derpnet.derpbot.handler;
 
-import fi.derpnet.derpbot.handler.impl.Echo;
-import fi.derpnet.derpbot.handler.impl.LinkTitle;
+import fi.derpnet.derpbot.handler.impl.*;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -10,5 +9,6 @@ public class HandlerRegistry {
     static {
         handlers.add(Echo.class);
         handlers.add(LinkTitle.class);
+        handlers.add(MacFinder.class);
     }
 }
