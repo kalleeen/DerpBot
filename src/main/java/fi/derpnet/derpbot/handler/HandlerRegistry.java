@@ -11,5 +11,6 @@ public class HandlerRegistry {
         handlers.add(LinkTitle.class);
         handlers.add(MacFinder.class);
         handlers.add(Help.class);
+        handlers.add(GeoIp.class);
     }
 }
