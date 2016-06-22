@@ -22,6 +22,7 @@ import java.util.Properties;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.log4j.Logger;
 
 public class MainController {
@@ -142,7 +143,15 @@ public class MainController {
     }
 
     public List<RawMessage> handleIncoming(IrcConnector origin, RawMessage message) {
-        return rawMessageHandlers.stream().map(h -> h.handle(message, origin)).filter(l -> l != null).flatMap(l -> l.stream()).collect(Collectors.toList());
+        Stream<List<RawMessage>> handledStream = rawMessageHandlers.stream().map((h) -> {
+            try {
+                return h.handle(message, origin);
+            } catch (Exception ex) {
+                LOG.warn("Handler " + h.getClass().getName() + " Threw an exception while handling a message", ex);
+                return null;
+            }
+        });
+        return handledStream.filter(l -> l != null).flatMap(l -> l.stream()).collect(Collectors.toList());
     }
 
     public List<RawMessageHandler> getRawMessageHandlers() {
