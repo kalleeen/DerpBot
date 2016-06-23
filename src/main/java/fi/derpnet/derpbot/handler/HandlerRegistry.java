@@ -13,5 +13,6 @@ public class HandlerRegistry {
         handlers.add(Help.class);
         handlers.add(GeoIp.class);
         handlers.add(CommonCtcpResponder.class);
+        handlers.add(Poikkeusinfo.class);
     }
 }
