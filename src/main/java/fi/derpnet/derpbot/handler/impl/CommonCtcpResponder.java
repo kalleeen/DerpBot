@@ -27,6 +27,9 @@ public class CommonCtcpResponder implements RawMessageHandler {
 
     @Override
     public List<RawMessage> handle(RawMessage message, IrcConnector ircConnector) {
+        if (message.parameters.size() < 2) {
+            return null;
+        }
         String body = message.parameters.get(1);
         if (!message.command.equals("PRIVMSG") || body.charAt(0) != IrcConstants.CTCP_CHAR || body.charAt(body.length() - 1) != IrcConstants.CTCP_CHAR) {
             return null;

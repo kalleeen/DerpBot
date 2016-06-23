@@ -14,5 +14,6 @@ public class HandlerRegistry {
         handlers.add(GeoIp.class);
         handlers.add(CommonCtcpResponder.class);
         handlers.add(Poikkeusinfo.class);
+        handlers.add(SslLabs.class);
     }
 }

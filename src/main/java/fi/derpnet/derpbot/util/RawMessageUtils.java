@@ -18,4 +18,14 @@ public class RawMessageUtils {
             return null;
         }
     }
+
+    public static String getRecipientForResponse(String sender, String recipient) {
+        if (IrcConstants.validChannelPrefixes.contains(recipient.charAt(0))) {
+            // message was sent to a channel, reply there
+            return recipient;
+        } else {
+            // private message, reply to sender
+            return sender;
+        }
+    }
 }
