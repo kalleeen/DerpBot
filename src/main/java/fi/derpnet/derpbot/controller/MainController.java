@@ -34,6 +34,24 @@ public class MainController {
     private List<IrcConnector> ircConnectors;
 
     public void start() {
+        loadConfiguration();
+        loadHandlers();
+        connectToServers();
+
+        LOG.info("Ready");
+        Scanner s = new Scanner(System.in);
+        while (true) {
+            String line = s.nextLine();
+            if (line.equals("exit")) {
+                break;
+            }
+        }
+
+        LOG.info("Disconnecting from IRC servers");
+        ircConnectors.forEach(c -> c.disconnect());
+    }
+
+    private void loadConfiguration() {
         LOG.info("Loading configuration");
         try {
             config = new HashMap<>();
@@ -62,7 +80,9 @@ public class MainController {
         } catch (URISyntaxException | IOException ex) {
             LOG.error("Failed to read configuration!", ex);
         }
+    }
 
+    private void loadHandlers() {
         LOG.info("Loading handlers");
         rawMessageHandlers = new LinkedList<>();
         HandlerRegistry.handlers.stream().forEach((Class c) -> {
@@ -92,7 +112,9 @@ public class MainController {
 
         LOG.info("Initializing handlers");
         rawMessageHandlers.forEach(h -> h.init(this));
+    }
 
+    private void connectToServers() {
         LOG.info("Connecting to IRC servers");
         ircConnectors = new LinkedList<>();
         Set<Entry<String, String>> networkEntries = config.entrySet().stream().filter(e -> e.getKey().startsWith("network.")).collect(Collectors.toSet());
@@ -111,33 +133,41 @@ public class MainController {
                 port = Integer.parseInt(entrySplit[1]);
                 ssl = false;
             }
-            // TODO: configurable nick, username and realname
-            IrcConnector connector = new IrcConnector(networkName, hostname, port, ssl, "DerpBot", "DerpBot", "DerpBot", this);
+            String nick = config.get("nick." + networkName);
+            if (nick == null) {
+                nick = config.get("default.nick");
+                if (nick == null) {
+                    nick = "DerpBot";
+                }
+            }
+            String user = config.get("user." + networkName);
+            if (user == null) {
+                user = config.get("default.user");
+                if (user == null) {
+                    user = "DerpBot";
+                }
+            }
+            String realname = config.get("realname." + networkName);
+            if (realname == null) {
+                realname = config.get("default.realname");
+                if (realname == null) {
+                    realname = "DerpBot";
+                }
+            }
+            IrcConnector connector = new IrcConnector(networkName, hostname, port, ssl, user, realname, nick, this);
             ircConnectors.add(connector);
             try {
                 connector.connect();
-
             } catch (IOException ex) {
                 LOG.error("Failed to connect to " + networkName + " (host: " + hostname + " Port: " + port + ")", ex);
                 continue;
             }
-            String channels = config.entrySet().stream().filter(e -> e.getKey().equals("channels." + networkName)).map(e -> e.getValue()).findAny().orElse(null);
+//            String channels = config.entrySet().stream().filter(e -> e.getKey().equals("channels." + networkName)).map(e -> e.getValue()).findAny().orElse(null);
+            String channels = config.get("channels." + networkName);
             if (channels != null) {
                 connector.setChannels(Arrays.asList(channels.split(",")), true);
             }
         }
-
-        LOG.info("Ready");
-        Scanner s = new Scanner(System.in);
-        while (true) {
-            String line = s.nextLine();
-            if (line.equals("exit")) {
-                break;
-            }
-        }
-
-        LOG.info("Disconnecting from IRC servers");
-        ircConnectors.forEach(c -> c.disconnect());
     }
 
     public List<RawMessage> handleIncoming(IrcConnector origin, RawMessage message) {

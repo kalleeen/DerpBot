@@ -1,3 +1,8 @@
+# Global stuff and defaults
+default.nick=DerpBot
+default.user=derpbot
+default.realname=The mighty DerpBot!
+
 # Networks
 # network.<name of network>=<prefix with ssl: for encrypted connection><hostname or ip>:<port>
 network.ExampleNet=irc.example.com:6667
@@ -7,3 +12,8 @@ network.AnotherExample=ssl:irc.example.org:6667
 # channels.<name of network>=<channels separated by comma>
 channels.ExampleNet=\#yolo,\#swag
 channels.AnotherExample=!shouting,\#derping
+
+# Nicks, usernames and realnames
+# All optional, overrides the defaults
+# <nick/user/realname>.<name of network>=<value>
+# nick.ExampleNet=HerpBot
