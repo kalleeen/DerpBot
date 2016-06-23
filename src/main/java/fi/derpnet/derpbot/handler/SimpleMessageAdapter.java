@@ -2,8 +2,8 @@ package fi.derpnet.derpbot.handler;
 
 import fi.derpnet.derpbot.bean.RawMessage;
 import fi.derpnet.derpbot.connector.IrcConnector;
-import fi.derpnet.derpbot.constants.IrcConstants;
 import fi.derpnet.derpbot.controller.MainController;
+import fi.derpnet.derpbot.util.RawMessageUtils;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -28,14 +28,7 @@ public class SimpleMessageAdapter implements RawMessageHandler {
             if (responseBody == null) {
                 return null;
             }
-            String responseRecipient;
-            if (IrcConstants.validChannelPrefixes.contains(incomingRecipient.charAt(0))) {
-                // message was sent to a channel, reply there
-                responseRecipient = message.parameters.get(0);
-            } else {
-                // private message, reply to sender
-                responseRecipient = message.prefix.split("!")[0];
-            }
+            String responseRecipient = RawMessageUtils.getRecipientForResponse(message);
             responseBody = ':' + responseBody;
             return Collections.singletonList(new RawMessage(null, "PRIVMSG", Arrays.asList(responseRecipient, responseBody)));
         } else {

@@ -12,5 +12,6 @@ public class HandlerRegistry {
         handlers.add(MacFinder.class);
         handlers.add(Help.class);
         handlers.add(GeoIp.class);
+        handlers.add(CommonCtcpResponder.class);
     }
 }

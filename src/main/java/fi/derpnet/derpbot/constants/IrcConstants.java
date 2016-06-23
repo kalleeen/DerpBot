@@ -7,4 +7,5 @@ import java.util.List;
 public class IrcConstants {
 
     public static final List<Character> validChannelPrefixes = Collections.unmodifiableList(Arrays.asList('&', '#', '+', '!'));
+    public static final char CTCP_CHAR = 0x1;
 }
