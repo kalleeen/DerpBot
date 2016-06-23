@@ -6,6 +6,7 @@ import fi.derpnet.derpbot.handler.SimpleMultiLineMessageHandler;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,6 +38,10 @@ public class LinkTitle implements SimpleMultiLineMessageHandler {
         for (String s : parts) {
             try {
                 URL url = new URL(s);
+                InetAddress address = InetAddress.getByName(url.getHost());
+                if (address.isSiteLocalAddress()) {
+                    continue;
+                }
                 try (BufferedReader in = new BufferedReader(new InputStreamReader(new BoundedInputStream(url.openStream(), 1024 * 1024 * 1024)))) {
                     String inputLine;
                     StringBuilder contentBuilder = new StringBuilder();
