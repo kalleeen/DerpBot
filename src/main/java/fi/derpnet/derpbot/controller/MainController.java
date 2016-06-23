@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -122,10 +123,7 @@ public class MainController {
             }
             String channels = config.entrySet().stream().filter(e -> e.getKey().equals("channels." + networkName)).map(e -> e.getValue()).findAny().orElse(null);
             if (channels != null) {
-                String[] channelss = channels.split(",");
-                for (String channel : channelss) {
-                    connector.join(channel);
-                }
+                connector.setChannels(Arrays.asList(channels.split(",")), true);
             }
         }
 
@@ -139,7 +137,7 @@ public class MainController {
         }
 
         LOG.info("Disconnecting from IRC servers");
-        //TODO implement
+        ircConnectors.forEach(c -> c.disconnect());
     }
 
     public List<RawMessage> handleIncoming(IrcConnector origin, RawMessage message) {
