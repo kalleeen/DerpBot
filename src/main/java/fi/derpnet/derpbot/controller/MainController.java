@@ -117,9 +117,9 @@ public class MainController {
     private void connectToServers() {
         LOG.info("Connecting to IRC servers");
         ircConnectors = new LinkedList<>();
-        Set<Entry<String, String>> networkEntries = config.entrySet().stream().filter(e -> e.getKey().startsWith("network.")).collect(Collectors.toSet());
+        Set<Entry<String, String>> networkEntries = config.entrySet().stream().filter(e -> e.getKey().startsWith("network.") && e.getKey().endsWith(".host")).collect(Collectors.toSet());
         for (Entry<String, String> entry : networkEntries) {
-            String networkName = entry.getKey().substring(entry.getKey().indexOf('.') + 1); // +1 because we don't want the dot
+            String networkName = entry.getKey().substring(entry.getKey().indexOf('.') + 1, entry.getKey().length() - 5); // +1 because we don't want the dot, and strip the .host from the end
             String[] entrySplit = entry.getValue().split(":");
             String hostname;
             int port;
@@ -133,21 +133,21 @@ public class MainController {
                 port = Integer.parseInt(entrySplit[1]);
                 ssl = false;
             }
-            String nick = config.get("nick." + networkName);
+            String nick = config.get("network." + networkName + ".nick");
             if (nick == null) {
                 nick = config.get("default.nick");
                 if (nick == null) {
                     nick = "DerpBot";
                 }
             }
-            String user = config.get("user." + networkName);
+            String user = config.get("network." + networkName + ".user");
             if (user == null) {
                 user = config.get("default.user");
                 if (user == null) {
                     user = "DerpBot";
                 }
             }
-            String realname = config.get("realname." + networkName);
+            String realname = config.get("network." + networkName + ".realname");
             if (realname == null) {
                 realname = config.get("default.realname");
                 if (realname == null) {
@@ -163,7 +163,7 @@ public class MainController {
                 continue;
             }
 //            String channels = config.entrySet().stream().filter(e -> e.getKey().equals("channels." + networkName)).map(e -> e.getValue()).findAny().orElse(null);
-            String channels = config.get("channels." + networkName);
+            String channels = config.get("network." + networkName + ".channels");
             if (channels != null) {
                 connector.setChannels(Arrays.asList(channels.split(",")), true);
             }

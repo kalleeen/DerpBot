@@ -4,16 +4,15 @@ default.user=derpbot
 default.realname=The mighty DerpBot!
 
 # Networks
-# network.<name of network>=<prefix with ssl: for encrypted connection><hostname or ip>:<port>
-network.ExampleNet=irc.example.com:6667
-network.AnotherExample=ssl:irc.example.org:6667
+#            Host:       network.<name of network>.host=<prefix with ssl: for encrypted connection><hostname or ip>:<port>
+#            Channels:   network.<name of network>.channels=<channels separated by comma>
+# (Optional) Nick:       network.<name of network>.nick=<nick>
+# (Optional) User:       network.<name of network>.user=<user>
+# (Optional) Real name:  network.<name of network>.realname=<real name>
+network.ExampleNet.host=irc.example.com:6667
+network.ExampleNet.channels=\#yolo,\#swag
+network.ExampleNet.nick=HerpBot
+network.ExampleNet.user=herypderp
 
-# Channels
-# channels.<name of network>=<channels separated by comma>
-channels.ExampleNet=\#yolo,\#swag
-channels.AnotherExample=!shouting,\#derping
-
-# Nicks, usernames and realnames
-# All optional, overrides the defaults
-# <nick/user/realname>.<name of network>=<value>
-# nick.ExampleNet=HerpBot
+network.AnotherExample.host=ssl:irc.example.org:6667
+network.AnotherExample.channels=!shouting,\#derping
