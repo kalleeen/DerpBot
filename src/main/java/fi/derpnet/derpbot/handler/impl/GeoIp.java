@@ -7,6 +7,8 @@ import com.maxmind.geoip2.record.City;
 import com.maxmind.geoip2.record.Country;
 import com.maxmind.geoip2.record.Location;
 import com.maxmind.geoip2.record.Postal;
+import com.maxmind.geoip2.record.RepresentedCountry;
+import com.maxmind.geoip2.record.Traits;
 import fi.derpnet.derpbot.connector.IrcConnector;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.handler.SimpleMessageHandler;
@@ -42,28 +44,53 @@ public class GeoIp implements SimpleMessageHandler {
             return null;
         }
         try {
-            InetAddress ipAddress = InetAddress.getByName(message.substring(7));
+            String lookup = message.substring(7);
+            InetAddress ipAddress = InetAddress.getByName(lookup);
+            String hostname = ipAddress.getCanonicalHostName();
+            String ip = ipAddress.getHostAddress();
             CityResponse response = databaseReader.city(ipAddress);
 
             Country country = response.getCountry();
             City city = response.getCity();
             Postal postal = response.getPostal();
             Location location = response.getLocation();
-            StringBuilder sb = new StringBuilder();
+            RepresentedCountry representedCountry = response.getRepresentedCountry();
+            Traits traits = response.getTraits();
 
-            if (city != null) {
+            StringBuilder sb = new StringBuilder();
+            if (hostname != null && !hostname.equals(ip)) {
+                sb.append(hostname).append(" (").append(ip).append(") = ");
+            } else {
+                sb.append(ip).append(" = ");
+            }
+
+            if (city != null && city.getName() != null) {
                 sb.append(city.getName()).append(", ");
             }
-            if (postal != null) {
+            if (postal != null && postal.getCode() != null) {
                 sb.append(postal.getCode()).append(", ");
             }
-            if (country != null) {
+            if (country != null && country.getName() != null) {
                 sb.append(country.getName()).append(", ");
             }
             if (location != null) {
-                sb.append("Lat: ").append(location.getLatitude()).append(" Lon: ").append(location.getLongitude());
+                sb.append("Lat: ").append(location.getLatitude()).append(" Lon: ").append(location.getLongitude()).append(" Accuracy radius: ").append(location.getAccuracyRadius()).append("km");
             } else if (", ".equals(sb.substring(sb.length() - 2, sb.length()))) {
                 sb.delete(sb.length() - 2, sb.length());
+            }
+            if (representedCountry != null && representedCountry.getType() != null) {
+                sb.append(" (Type: ").append(representedCountry.getType()).append(')');
+            }
+            if (traits != null) {
+                if (traits.getAutonomousSystemNumber() != null && traits.getAutonomousSystemOrganization() != null) {
+                    sb.append(" ASN: ").append(traits.getAutonomousSystemNumber()).append(" (").append(traits.getAutonomousSystemOrganization()).append(')');
+                }
+                if (traits.getIsp() != null) {
+                    sb.append(" ISP: ").append(traits.getIsp());
+                }
+                if (traits.getOrganization() != null) {
+                    sb.append(" Organization: ").append(traits.getOrganization());
+                }
             }
 
             return sb.length() > 0 ? sb.toString() : null;
