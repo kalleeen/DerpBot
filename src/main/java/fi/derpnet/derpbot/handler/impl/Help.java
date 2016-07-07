@@ -31,7 +31,12 @@ public class Help implements SimpleMessageHandler {
             return sb.substring(0, sb.length() - 2); // -2 to remove the last comma and space
         } else if (message.startsWith("!help ") && message.length() > 7) {
             String command = message.substring(6);
-            return controller.getRawMessageHandlers().stream().filter(h -> command.equals(h.getCommand())).map(h -> h.getHelp()).findAny().orElse("No help for " + command);
+            String msg = controller.getRawMessageHandlers().stream().filter(h -> command.equals(h.getCommand())).map(h -> h.getHelp()).findAny().orElse(null);
+            if (msg != null) {
+                return msg;
+            }
+            String altCommand = '!' + command;
+            return controller.getRawMessageHandlers().stream().filter(h -> altCommand.equals(h.getCommand())).map(h -> h.getHelp()).findAny().orElse("No help for " + command);
         } else {
             return null;
         }
