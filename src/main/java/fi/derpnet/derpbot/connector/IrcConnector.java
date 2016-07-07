@@ -87,12 +87,12 @@ public class IrcConnector {
             nick = pendingNick;
         }
 
+        connectionWatcher = new ConnectionWatcher();
         receiverThread = new ReceiverThread(reader);
         receiverThread.start();
         senderThread = new SenderThread(writer);
         senderThread.start();
 
-        connectionWatcher = new ConnectionWatcher();
         connectionWatcherTimer.schedule(connectionWatcher, 10000, PING_INTERVAL_MS);
     }
 
