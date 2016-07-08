@@ -56,7 +56,7 @@ public class LinkTitle implements SimpleMultiLineMessageHandler {
                     if (end == -1 || end < start) {
                         continue;
                     }
-                    String title = contentBuilder.substring(start, end).replaceAll("\\r\\n|\\r|\\n", " "); // Windoors uses \r\n unix uses \n and old macs use \r as linebreak because who needs common standards!
+                    String title = contentBuilder.substring(start, end).replaceAll("\\r\\n|\\r|\\n", " ").trim(); // Windoors uses \r\n unix uses \n and old macs use \r as linebreak because who needs common standards!
                     responses.add(title);
                 }
             } catch (IOException | ClassCastException ex) {

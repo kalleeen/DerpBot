@@ -120,7 +120,7 @@ public class SslLabs implements SimpleMessageHandler {
                     break;
                 }
             }
-            ircConnector.send(new RawMessage(null, "PRIVMSG", recipient, returnMsg));
+            ircConnector.send(new RawMessage(null, "PRIVMSG", recipient, ':' + returnMsg));
         }
     }
 }

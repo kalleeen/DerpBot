@@ -56,11 +56,11 @@ public class MainController {
         try {
             config = new HashMap<>();
             File jarLocation = new File(MainController.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParentFile();
-            File[] configFiles = jarLocation.listFiles((f) -> f.isFile() && f.getName().equals("derpbot.properties"));
+            File[] configFiles = jarLocation.listFiles(f -> f.isFile() && f.getName().equals("derpbot.properties"));
             if (configFiles == null || configFiles.length == 0) {
                 // look for config files in the parent directory if none found in the current directory, this is useful during development when
                 // DerpBot can be run from maven target directory directly while the config file sits in the project root
-                configFiles = jarLocation.getParentFile().listFiles((f) -> f.isFile() && f.getName().equals("derpbot.properties"));
+                configFiles = jarLocation.getParentFile().listFiles(f -> f.isFile() && f.getName().equals("derpbot.properties"));
             }
             if (configFiles == null || configFiles.length == 0) {
                 System.err.println("No config file found!");
@@ -162,7 +162,6 @@ public class MainController {
                 LOG.error("Failed to connect to " + networkName + " (host: " + hostname + " Port: " + port + ")", ex);
                 continue;
             }
-//            String channels = config.entrySet().stream().filter(e -> e.getKey().equals("channels." + networkName)).map(e -> e.getValue()).findAny().orElse(null);
             String channels = config.get("network." + networkName + ".channels");
             if (channels != null) {
                 connector.setChannels(Arrays.asList(channels.split(",")), true);
