@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fi.derpnet.derpbot.bean;
 
 import java.time.LocalDateTime;
@@ -10,9 +5,10 @@ import java.util.Date;
 
 /**
  *
- * @author kalle
+ * @author Thomas
  */
 public class Leg {
+
     private String mode;
     private String line;
     private Date startTime;

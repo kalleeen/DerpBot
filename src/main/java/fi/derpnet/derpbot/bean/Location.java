@@ -1,15 +1,11 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package fi.derpnet.derpbot.bean;
 
 /**
  *
- * @author kalle
+ * @author Thomas
  */
 public class Location {
+
     private double[] coordinates;
     private String description;
     private String code;
