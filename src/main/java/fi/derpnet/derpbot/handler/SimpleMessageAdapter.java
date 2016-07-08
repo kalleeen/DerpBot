@@ -4,7 +4,6 @@ import fi.derpnet.derpbot.bean.RawMessage;
 import fi.derpnet.derpbot.connector.IrcConnector;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.util.RawMessageUtils;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -29,8 +28,7 @@ public class SimpleMessageAdapter implements RawMessageHandler {
                 return null;
             }
             String responseRecipient = RawMessageUtils.getRecipientForResponse(message);
-            responseBody = ':' + responseBody;
-            return Collections.singletonList(new RawMessage(null, "PRIVMSG", Arrays.asList(responseRecipient, responseBody)));
+            return Collections.singletonList(new RawMessage(null, "PRIVMSG", responseRecipient, ':' + responseBody));
         } else {
             return null;
         }
