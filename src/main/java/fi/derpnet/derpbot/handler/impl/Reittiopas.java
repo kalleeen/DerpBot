@@ -1,20 +1,16 @@
 package fi.derpnet.derpbot.handler.impl;
 
-import fi.derpnet.derpbot.bean.Leg;
-import fi.derpnet.derpbot.bean.Location;
+import fi.derpnet.derpbot.bean.reittiopas.Leg;
+import fi.derpnet.derpbot.bean.reittiopas.Location;
 import fi.derpnet.derpbot.connector.IrcConnector;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.util.ReittiopasAPI;
 import fi.derpnet.derpbot.handler.SimpleMultiLineMessageHandler;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.TimeZone;
 
-/**
- *
- * @author Thomas
- */
 public class Reittiopas implements SimpleMultiLineMessageHandler {
 
     private ReittiopasAPI api;
@@ -40,7 +36,7 @@ public class Reittiopas implements SimpleMultiLineMessageHandler {
             return null;
         }
 
-        List<String> print = new ArrayList<String>();
+        List<String> print = new LinkedList<>();
 
         String routeSearch = message.substring(12);
         String[] split = routeSearch.split("--");
@@ -49,51 +45,52 @@ public class Reittiopas implements SimpleMultiLineMessageHandler {
             Location start = api.getLocation(split[0].trim());
 
             if (start == null) {
-                print.add(new String("Starting point not found!"));
+                print.add("Starting point not found!");
                 return print;
             }
 
             Location destination = api.getLocation(split[1].trim());
 
             if (destination == null) {
-                print.add(new String("Destination point not found!"));
+                print.add("Destination point not found!");
                 return print;
             }
 
             List<Leg> legs = api.getRoute(start, destination);
 
             if (legs == null) {
-                print.add(new String("No route found!"));
+                print.add("No route found!");
                 return print;
             } else {
-                print.add(new String(start.getDescription() + " - " + destination.getDescription() + ":"));
+                print.add((start.getDescription() + " - " + destination.getDescription() + ":"));
             }
 
             int i = 1;
             SimpleDateFormat format = new SimpleDateFormat("HH:mm");
             format.setTimeZone(TimeZone.getTimeZone("GMT+1")); //lolwut, why do i need this
             for (Leg leg : legs) {
-                if (leg.getMode().equals("WALK") && leg.getStartLocation().getCode() == null) {
-                    print.add(i + ". [" + format.format(leg.getStartTime()) + "] " + leg.getStartLocation().getDescription() + " "
-                            + "--> " + leg.getMode() + " -->"
-                            + " [" + format.format(leg.getFinishTime()) + "] " + leg.getFinishLocation().getDescription() + " (" + leg.getFinishLocation().getCode() + ")");
-                } else if (leg.getMode().equals("WALK") && leg.getFinishLocation().getCode() == null) {
-                    print.add(i + ". [" + format.format(leg.getStartTime()) + "] " + leg.getStartLocation().getDescription() + " (" + leg.getStartLocation().getCode() + ")"
-                            + "--> " + leg.getMode() + " -->"
-                            + " [" + format.format(leg.getFinishTime()) + "] " + leg.getFinishLocation().getDescription() + " ");
-                } else if (leg.getMode().equals("WALK")) {
-                    print.add(i + ". [" + format.format(leg.getStartTime()) + "] " + leg.getStartLocation().getDescription() + " (" + leg.getStartLocation().getCode() + ")"
-                            + "--> " + leg.getMode() + " -->"
-                            + " [" + format.format(leg.getFinishTime()) + "] " + leg.getFinishLocation().getDescription() + " ");
+                String startTime = format.format(leg.getStartTime());
+                String finishTime = format.format(leg.getFinishTime());
+                String startDescription = leg.getStartLocation() != null ? leg.getStartLocation().getDescription() : "";
+                String finishDescription = leg.getFinishLocation() != null ? leg.getFinishLocation().getDescription() : "";
+                String startCode = leg.getStartLocation() != null ? leg.getStartLocation().getCode() : "";
+                String finishCode = leg.getFinishLocation() != null ? leg.getFinishLocation().getCode() : "";
+                String legMode = leg.getMode();
+                String legLine = leg.getLine();
+
+                if (legMode.equals("WALK") && startCode == null) {
+                    print.add(String.format("%d. [%s] %s --> %s --> [%s] %s (%s)", i, startTime, startDescription, legMode, finishTime, finishDescription, finishCode));
+                } else if (legMode.equals("WALK") && finishCode == null) {
+                    print.add(String.format("%d. [%s] %s (%s) --> %s --> [%s] %s", i, startTime, startDescription, startCode, legMode, finishTime, finishDescription));
+                }  else if (legMode.equals("WALK")) {
+                    print.add(String.format("%d. [%s] %s (%s) --> %s --> [%s] %s (%s)", i, startTime, startDescription, startCode, legMode, finishTime, finishDescription, finishCode));
                 } else {
-                    print.add(i + ". [" + format.format(leg.getStartTime()) + "] " + leg.getStartLocation().getDescription() + " (" + leg.getStartLocation().getCode() + ") "
-                            + "--> " + leg.getMode() + " (Line: " + leg.getLine() + ") -->"
-                            + " [" + format.format(leg.getFinishTime()) + "] " + leg.getFinishLocation().getDescription() + " (" + leg.getFinishLocation().getCode() + ")");
+                    print.add(String.format("%d. [%s] %s (%s) --> %s (Line: %s) --> [%s] %s (%s)", i, startTime, startDescription, startCode, legMode, legLine, finishTime, finishDescription, finishCode));
                 }
                 i++;
             }
         } catch (NullPointerException npe) {
-            print.add(new String("Something wrong -- right usage? !reittiopas start - destination"));
+            print.add("Something wrong -- right usage? !reittiopas start -- destination");
         }
         return print;
     }

@@ -3,6 +3,7 @@ package fi.derpnet.derpbot.handler.impl;
 import fi.derpnet.derpbot.connector.IrcConnector;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.handler.SimpleMessageHandler;
+import fi.derpnet.derpbot.util.CommandUtils;
 
 public class Help implements SimpleMessageHandler {
 
@@ -25,20 +26,21 @@ public class Help implements SimpleMessageHandler {
 
     @Override
     public String handle(String sender, String recipient, String message, IrcConnector ircConnector) {
-        if (message.equals("!help")) {
+        if (!message.startsWith("!help")) {
+            return null;
+        }
+        String param = CommandUtils.getFirstParameter(message);
+        if (param == null) {
             StringBuilder sb = new StringBuilder("Commands: ");
             controller.getRawMessageHandlers().stream().map(c -> c.getCommand()).filter(s -> s != null).forEach(s -> sb.append(s).append(", "));
             return sb.substring(0, sb.length() - 2); // -2 to remove the last comma and space
-        } else if (message.startsWith("!help ") && message.length() > 7) {
-            String command = message.substring(6);
-            String msg = controller.getRawMessageHandlers().stream().filter(h -> command.equals(h.getCommand())).map(h -> h.getHelp()).findAny().orElse(null);
+        } else {
+            String msg = controller.getRawMessageHandlers().stream().filter(h -> param.equals(h.getCommand())).map(h -> h.getHelp()).findAny().orElse(null);
             if (msg != null) {
                 return msg;
             }
-            String altCommand = '!' + command;
-            return controller.getRawMessageHandlers().stream().filter(h -> altCommand.equals(h.getCommand())).map(h -> h.getHelp()).findAny().orElse("No help for " + command);
-        } else {
-            return null;
+            String altParam = '!' + param;
+            return controller.getRawMessageHandlers().stream().filter(h -> altParam.equals(h.getCommand())).map(h -> h.getHelp()).findAny().orElse("No help for " + param);
         }
     }
 

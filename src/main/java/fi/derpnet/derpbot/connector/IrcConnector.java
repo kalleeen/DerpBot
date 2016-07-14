@@ -106,7 +106,7 @@ public class IrcConnector {
             LOG.error("Failed to disconnect from " + hostname + ", this connector may be in an inconsistent state!", ex);
         }
     }
-    
+
     public void send(RawMessage msg) {
         senderThread.messageQueue.add(msg);
     }

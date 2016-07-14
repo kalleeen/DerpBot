@@ -2,7 +2,6 @@ package fi.derpnet.derpbot.handler;
 
 import fi.derpnet.derpbot.bean.RawMessage;
 import fi.derpnet.derpbot.connector.IrcConnector;
-import fi.derpnet.derpbot.constants.IrcConstants;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.util.RawMessageUtils;
 import java.util.List;

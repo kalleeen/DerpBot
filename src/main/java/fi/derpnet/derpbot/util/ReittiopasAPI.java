@@ -1,7 +1,7 @@
 package fi.derpnet.derpbot.util;
 
-import fi.derpnet.derpbot.bean.Leg;
-import fi.derpnet.derpbot.bean.Location;
+import fi.derpnet.derpbot.bean.reittiopas.Leg;
+import fi.derpnet.derpbot.bean.reittiopas.Location;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -10,50 +10,48 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-/**
- *
- * @author Thomas
- */
 public class ReittiopasAPI {
 
     private static final String GEOCODING_API = "https://api.digitransit.fi/geocoding/v1/search";
     private static final String HELSINKI_API = "https://api.digitransit.fi/routing/v1/routers/hsl/index/graphql";
 
-    private Logger logger = Logger.getLogger(ReittiopasAPI.class);
+    private static final Logger LOG = Logger.getLogger(ReittiopasAPI.class);
 
-    /*
-    Find latitude + longitude and description for searchterm. Searches from whole Finland (Be aware!)
+    /**
+     * Find latitude + longitude and description for search term. Searches from
+     * whole Finland (Be aware!)
+     *
+     * @param locationSearch
+     * @return Location if found, or null if no matching Location was found
      */
     public Location getLocation(String locationSearch) {
         try {
             String locationEncoded = URLEncoder.encode(locationSearch, "UTF-8");
             String query = GEOCODING_API + "?text=" + locationEncoded + "&size=1";
 
-            System.out.println(query);
+            LOG.debug(query);
 
-            StringBuilder result = new StringBuilder();
+            String result;
             URL url = new URL(query);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
 
-            BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String line;
-            while ((line = rd.readLine()) != null) {
-                result.append(line);
+            try (BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                result = rd.lines().collect(Collectors.joining());
             }
-            rd.close();
             conn.disconnect();
 
-            JSONObject obj = new JSONObject(result.toString());
+            JSONObject obj = new JSONObject(result);
             JSONArray features = obj.getJSONArray("features");
             JSONArray coordinates = features.getJSONObject(0).getJSONObject("geometry").getJSONArray("coordinates");
             JSONObject properties = features.getJSONObject(0).getJSONObject("properties");
@@ -71,15 +69,19 @@ public class ReittiopasAPI {
             location.setDescription(name + ", " + locality);
 
             return location;
-
         } catch (IOException | JSONException ex) {
-            logger.warn("Kohdetta ei löytynyt tai ei voitu hakea", ex);
+            LOG.warn("Kohdetta ei löytynyt tai ei voitu hakea", ex);
             return null;
         }
     }
 
-    /*
-    Find route by public transport and walking between to coordinates. Only works on HSL area!
+    /**
+     * Find route by public transport and walking between to coordinates. Only
+     * works on HSL area!
+     *
+     * @param start
+     * @param finish
+     * @return The route between start and finish locations
      */
     public List<Leg> getRoute(Location start, Location finish) {
         String plan = "plan("
@@ -135,7 +137,7 @@ public class ReittiopasAPI {
             String query = "{" + plan + iternaries + "}";
             byte[] postData = query.getBytes(StandardCharsets.ISO_8859_1);
             int postDataLength = postData.length;
-            StringBuilder result = new StringBuilder();
+            String result;
 
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
@@ -148,18 +150,15 @@ public class ReittiopasAPI {
                 wr.write(postData);
             }
 
-            BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String line;
-            while ((line = rd.readLine()) != null) {
-                result.append(line);
+            try (BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                result = rd.lines().collect(Collectors.joining());
             }
-            rd.close();
             conn.disconnect();
 
-            JSONObject obj = new JSONObject(result.toString());
+            JSONObject obj = new JSONObject(result);
             JSONArray legsJson = obj.getJSONObject("data").getJSONObject("plan").getJSONArray("itineraries").getJSONObject(0).getJSONArray("legs");
 
-            List<Leg> legs = new ArrayList<Leg>();
+            List<Leg> legs = new LinkedList<>();
 
             for (int i = 0; i < legsJson.length(); i++) {
                 JSONObject legJson = legsJson.getJSONObject(i);
@@ -212,9 +211,8 @@ public class ReittiopasAPI {
             }
 
             return legs;
-
         } catch (IOException | JSONException ex) {
-            logger.warn("Reittiä ei löytynyt tai ei voitu hakea", ex);
+            LOG.warn("Reittiä ei löytynyt tai ei voitu hakea", ex);
             return null;
         }
     }

@@ -7,6 +7,7 @@ import fi.derpnet.derpbot.bean.RawMessage;
 import fi.derpnet.derpbot.connector.IrcConnector;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.handler.SimpleMessageHandler;
+import fi.derpnet.derpbot.util.CommandUtils;
 import fi.derpnet.derpbot.util.RawMessageUtils;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,30 +15,30 @@ import java.net.URL;
 import org.apache.commons.io.IOUtils;
 
 public class SslLabs implements SimpleMessageHandler {
-
+    
     public static final String BASE_URL = "https://api.ssllabs.com/api/v2/analyze?host=";
     public static final int TIMEOUT_MS = 300_000;
-
+    
     @Override
     public void init(MainController controller) {
     }
-
+    
     @Override
     public String getCommand() {
         return "!ssllabs";
     }
-
+    
     @Override
     public String getHelp() {
         return "SSL Labs scan of a specific host";
     }
-
+    
     @Override
     public String handle(String sender, String recipient, String message, IrcConnector ircConnector) {
         if (!message.startsWith("!ssllabs ")) {
             return null;
         }
-        String host = message.substring(9).replace("http://", "").replace("https://", "");
+        String host = CommandUtils.getFirstParameter(message).replace("http://", "").replace("https://", "");
         if (host.indexOf('/') > 0) {
             host = host.substring(0, host.indexOf('/'));
         }
@@ -67,22 +68,22 @@ public class SslLabs implements SimpleMessageHandler {
             return "Failed to get analysis for host " + host + " due to " + ex.getMessage() + ". Invalid hostname?";
         }
     }
-
+    
     private class PollerThread extends Thread {
-
+        
         private final IrcConnector ircConnector;
         private final String host;
         private final long start;
         private final String recipient;
         private String returnMsg;
-
+        
         public PollerThread(IrcConnector ircConnector, String host, String recipient) {
             this.ircConnector = ircConnector;
             this.host = host;
             this.recipient = recipient;
             start = System.currentTimeMillis();
         }
-
+        
         @Override
         public void run() {
             loop:

@@ -174,7 +174,7 @@ public class MainController {
             try {
                 return h.handle(message, origin);
             } catch (Exception ex) {
-                LOG.warn("Handler " + h.getClass().getName() + " Threw an exception while handling a message", ex);
+                LOG.warn("Handler " + h.getClass().getName() + " threw an exception while handling a message", ex);
                 return null;
             }
         });
