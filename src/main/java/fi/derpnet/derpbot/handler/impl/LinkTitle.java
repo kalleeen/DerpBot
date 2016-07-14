@@ -10,6 +10,8 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.commons.io.input.BoundedInputStream;
 
 public class LinkTitle implements SimpleMultiLineMessageHandler {
@@ -42,22 +44,16 @@ public class LinkTitle implements SimpleMultiLineMessageHandler {
                 if (address.isSiteLocalAddress()) {
                     continue;
                 }
-                try (BufferedReader in = new BufferedReader(new InputStreamReader(new BoundedInputStream(url.openStream(), 1024 * 1024 * 1024)))) {
+                try (BufferedReader in = new BufferedReader(new InputStreamReader(new BoundedInputStream(url.openStream(), 1024 * 1024)))) {
                     String inputLine;
                     StringBuilder contentBuilder = new StringBuilder();
                     while ((inputLine = in.readLine()) != null) {
-                        contentBuilder.append(inputLine);
+                        contentBuilder.append(inputLine).append(' ');
                     }
-                    int start = contentBuilder.indexOf("<title>") + 7; // +7 because we don't want the title itself being caught
-                    if (start == -1) {
-                        continue;
+                    Matcher m = Pattern.compile("(.*)<title([^>]*)>(?<title>[^<]*)</title>(.*)").matcher(contentBuilder);
+                    if (m.matches()) {
+                        responses.add(m.group("title").replaceAll("\\r\\n|\\r|\\n", " ").replaceAll("\\s+", " ").trim());
                     }
-                    int end = contentBuilder.indexOf("</title>");
-                    if (end == -1 || end < start) {
-                        continue;
-                    }
-                    String title = contentBuilder.substring(start, end).replaceAll("\\r\\n|\\r|\\n", " ").trim(); // Windoors uses \r\n unix uses \n and old macs use \r as linebreak because who needs common standards!
-                    responses.add(title);
                 }
             } catch (IOException | ClassCastException ex) {
             }

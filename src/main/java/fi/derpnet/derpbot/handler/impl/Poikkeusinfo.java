@@ -5,6 +5,7 @@ import fi.derpnet.derpbot.constants.AsciiFormatting;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.handler.SimpleMultiLineMessageHandler;
 import fi.derpnet.derpbot.util.CommandUtils;
+import fi.derpnet.derpbot.util.IrcFormatter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -143,14 +144,14 @@ public class Poikkeusinfo implements SimpleMultiLineMessageHandler {
         vantaaSisainenDestinations.forEach((destination, lineData) -> {
             result.add(formatLineData("Vantaan sisäisen liikenteen linja %s, klo %s peruttu.%s", destination, lineData));
         });
-        ungrouped.forEach(l -> result.add(l + " " + AsciiFormatting.colorize("[ungrouped]", AsciiFormatting.GREY)));
+        ungrouped.forEach(l -> result.add(l + " " + IrcFormatter.colorize("[ungrouped]", AsciiFormatting.GREY)));
         return result;
     }
 
     private String formatLineData(String formatString, String destination, LineData lineData) {
         String timesString = lineData.times.stream().collect(Collectors.joining(", "));
         String extrasString = lineData.extras.stream().collect(Collectors.joining(","));
-        return String.format(formatString, AsciiFormatting.bold(destination), AsciiFormatting.bold(timesString), extrasString);
+        return String.format(formatString, IrcFormatter.bold(destination), IrcFormatter.bold(timesString), extrasString);
     }
 
     private class LineData {
