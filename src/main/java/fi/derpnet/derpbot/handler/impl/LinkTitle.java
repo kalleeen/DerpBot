@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.io.input.BoundedInputStream;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 public class LinkTitle implements SimpleMultiLineMessageHandler {
 
@@ -52,7 +53,8 @@ public class LinkTitle implements SimpleMultiLineMessageHandler {
                     }
                     Matcher m = Pattern.compile("(.*)<title([^>]*)>(?<title>[^<]*)</title>(.*)").matcher(contentBuilder);
                     if (m.matches()) {
-                        responses.add(m.group("title").replaceAll("\\r\\n|\\r|\\n", " ").replaceAll("\\s+", " ").trim());
+                        String title = StringEscapeUtils.unescapeHtml4(m.group("title").replaceAll("\\r|\\n", " ").replaceAll("\\s+", " ").trim());
+                        responses.add(title);
                     }
                 }
             } catch (IOException | ClassCastException ex) {
