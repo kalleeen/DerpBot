@@ -18,9 +18,9 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 public class GeoIp implements SimpleMessageHandler {
-    
+
     private DatabaseReader databaseReader;
-    
+
     @Override
     public void init(MainController controller) {
         try {
@@ -28,17 +28,17 @@ public class GeoIp implements SimpleMessageHandler {
         } catch (IOException e) {
         }
     }
-    
+
     @Override
     public String getCommand() {
         return "!geoip";
     }
-    
+
     @Override
     public String getHelp() {
         return "Looks up an IP address or hostname from GeoIP2 database";
     }
-    
+
     @Override
     public String handle(String sender, String recipient, String message, IrcConnector ircConnector) {
         if (!message.startsWith("!geoip ")) {
@@ -47,24 +47,27 @@ public class GeoIp implements SimpleMessageHandler {
         try {
             String lookup = CommandUtils.getFirstParameter(message);
             InetAddress ipAddress = InetAddress.getByName(lookup);
+            if (ipAddress.isSiteLocalAddress()) {
+                return "Local address";
+            }
             String hostname = ipAddress.getCanonicalHostName();
             String ip = ipAddress.getHostAddress();
             CityResponse response = databaseReader.city(ipAddress);
-            
+
             Country country = response.getCountry();
             City city = response.getCity();
             Postal postal = response.getPostal();
             Location location = response.getLocation();
             RepresentedCountry representedCountry = response.getRepresentedCountry();
             Traits traits = response.getTraits();
-            
+
             StringBuilder sb = new StringBuilder();
             if (hostname != null && !hostname.equals(ip)) {
                 sb.append(hostname).append(" (").append(ip).append(") = ");
             } else {
                 sb.append(ip).append(" = ");
             }
-            
+
             if (city != null && city.getName() != null) {
                 sb.append(city.getName()).append(", ");
             }
@@ -93,7 +96,7 @@ public class GeoIp implements SimpleMessageHandler {
                     sb.append(" Organization: ").append(traits.getOrganization());
                 }
             }
-            
+
             return sb.length() > 0 ? sb.toString() : null;
         } catch (UnknownHostException ex) {
             return "Unknown host";
