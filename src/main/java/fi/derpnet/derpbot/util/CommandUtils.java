@@ -2,6 +2,7 @@ package fi.derpnet.derpbot.util;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 public class CommandUtils {
@@ -33,6 +34,7 @@ public class CommandUtils {
      * @return The first parameter, or null if there were no parameters
      */
     public static String getFirstParameter(String message) {
-        return getParameters(message).iterator().next();
+        Iterator<String> it = getParameters(message).iterator();
+        return it.hasNext() ? getParameters(message).iterator().next() : null;
     }
 }

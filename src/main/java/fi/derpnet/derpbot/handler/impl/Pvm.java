@@ -69,7 +69,7 @@ public class Pvm implements SimpleMessageHandler {
 
         Pyha pyha = getPyha();
         if (pyha != null) {
-            sb.append(" Pyhä: ").append(IrcFormatter.bold(pyha.getName()));
+            sb.append(", Pyhä: ").append(IrcFormatter.bold(pyha.getName()));
             if (pyha.getAge() != null) {
                 sb.append(IrcFormatter.colorize(" (" + pyha.getAge() + " vuotta)", AsciiFormatting.GREY));
             }
@@ -77,7 +77,7 @@ public class Pvm implements SimpleMessageHandler {
 
         Liputuspaiva liputuspaiva = getLiputuspaiva();
         if (liputuspaiva != null) {
-            sb.append(" Liputuspäivä: ").append(IrcFormatter.bold(liputuspaiva.getName()));
+            sb.append(", Liputuspäivä: ").append(IrcFormatter.bold(liputuspaiva.getName()));
             if (liputuspaiva.getAge() != null) {
                 sb.append(IrcFormatter.colorize(" (" + liputuspaiva.getAge() + " vuotta)", AsciiFormatting.GREY));
             }
@@ -85,7 +85,7 @@ public class Pvm implements SimpleMessageHandler {
 
         Nimipaiva nimipaiva = getNimipaiva();
         if (nimipaiva != null) {
-            sb.append(" Nimipäivää viettää ").append(IrcFormatter.bold(nimipaiva.getName())).append('.');
+            sb.append(", Nimipäivää viettää ").append(IrcFormatter.bold(nimipaiva.getName())).append('.');
         }
 
         return sb.toString();
