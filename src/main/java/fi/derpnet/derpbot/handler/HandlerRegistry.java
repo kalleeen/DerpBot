@@ -17,5 +17,6 @@ public class HandlerRegistry {
         handlers.add(SslLabs.class);
         handlers.add(Randomizer.class);
         handlers.add(Reittiopas.class);
+        handlers.add(Pvm.class);
     }
 }
