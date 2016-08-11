@@ -7,15 +7,20 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
+import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.log4j.Logger;
 
 public class LinkTitle implements SimpleMultiLineMessageHandler {
+
+    private static final Logger LOG = Logger.getLogger(LinkTitle.class);
 
     @Override
     public void init(MainController controller) {
@@ -40,16 +45,27 @@ public class LinkTitle implements SimpleMultiLineMessageHandler {
         List<String> responses = new LinkedList<>();
         for (String s : parts) {
             try {
-                URL url = new URL(s);
+                URL url;
+                try {
+                    url = new URL(s);
+                } catch (IOException ex) {
+                    continue;
+                }
+                URLConnection connection = url.openConnection();
+                connection.setReadTimeout(5000);
                 InetAddress address = InetAddress.getByName(url.getHost());
                 if (address.isSiteLocalAddress()) {
                     continue;
                 }
-                try (BufferedReader in = new BufferedReader(new InputStreamReader(new BoundedInputStream(url.openStream(), 1024 * 1024)))) {
+                try (BufferedReader in = new BufferedReader(new InputStreamReader(new BoundedInputStream(connection.getInputStream(), 1024 * 1024)))) {
                     String inputLine;
                     StringBuilder contentBuilder = new StringBuilder();
-                    while ((inputLine = in.readLine()) != null) {
-                        contentBuilder.append(inputLine).append(' ');
+                    try {
+                        while ((inputLine = in.readLine()) != null) {
+                            contentBuilder.append(inputLine).append(' ');
+                        }
+                    } catch (SocketTimeoutException ex) {
+                        LOG.warn("Timeout getting content for: " + s, ex);
                     }
                     Matcher m = Pattern.compile("(.*)<title([^>]*)>(?<title>[^<]*)</title>(.*)").matcher(contentBuilder);
                     if (m.matches()) {
@@ -58,6 +74,7 @@ public class LinkTitle implements SimpleMultiLineMessageHandler {
                     }
                 }
             } catch (IOException | ClassCastException ex) {
+                LOG.warn("Failed to get link title for: " + s, ex);
             }
         }
         return responses.isEmpty() ? null : responses;
