@@ -5,14 +5,23 @@ import fi.derpnet.derpbot.constants.IrcConstants;
 
 public class RawMessageUtils {
 
-    public static String getRecipientForResponse(RawMessage src) {
-        if (src.command.equals("PRIVMSG") || src.command.equals("NOTICE")) {
-            if (IrcConstants.validChannelPrefixes.contains(src.parameters.get(0).charAt(0))) {
+    public static boolean privMsgSentToChannel(RawMessage msg) {
+        return (msg.command.equals("PRIVMSG") || msg.command.equals("NOTICE"))
+                && IrcConstants.validChannelPrefixes.contains(msg.parameters.get(0).charAt(0));
+    }
+    
+    public static String privMsgSender(RawMessage msg) {
+        return msg.prefix.split("!")[0];
+    }
+
+    public static String getRecipientForResponse(RawMessage msg) {
+        if (msg.command.equals("PRIVMSG") || msg.command.equals("NOTICE")) {
+            if (privMsgSentToChannel(msg)) {
                 // message was sent to a channel, reply there
-                return src.parameters.get(0);
+                return msg.parameters.get(0);
             } else {
                 // private message, reply to sender
-                return src.prefix.split("!")[0];
+                return privMsgSender(msg);
             }
         } else {
             return null;

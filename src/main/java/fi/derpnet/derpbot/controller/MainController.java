@@ -1,12 +1,16 @@
 package fi.derpnet.derpbot.controller;
 
+import fi.derpnet.derpbot.adapter.LoudMessageAdapter;
+import fi.derpnet.derpbot.adapter.LoudMultiLineMessageAdapter;
 import fi.derpnet.derpbot.bean.RawMessage;
 import fi.derpnet.derpbot.connector.IrcConnector;
 import fi.derpnet.derpbot.handler.HandlerRegistry;
-import fi.derpnet.derpbot.handler.SimpleMessageAdapter;
+import fi.derpnet.derpbot.adapter.SimpleMessageAdapter;
 import fi.derpnet.derpbot.handler.RawMessageHandler;
 import fi.derpnet.derpbot.handler.SimpleMessageHandler;
-import fi.derpnet.derpbot.handler.SimpleMultiLineMessageAdapter;
+import fi.derpnet.derpbot.adapter.SimpleMultiLineMessageAdapter;
+import fi.derpnet.derpbot.handler.LoudMessageHandler;
+import fi.derpnet.derpbot.handler.LoudMultiLineMessageHandler;
 import fi.derpnet.derpbot.handler.SimpleMultiLineMessageHandler;
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,17 +31,17 @@ import java.util.stream.Stream;
 import org.apache.log4j.Logger;
 
 public class MainController {
-
+    
     private static final Logger LOG = Logger.getLogger(MainController.class);
     private List<RawMessageHandler> rawMessageHandlers;
     private Map<String, String> config;
     private List<IrcConnector> ircConnectors;
-
+    
     public void start() {
         loadConfiguration();
         loadHandlers();
         connectToServers();
-
+        
         LOG.info("Ready");
         Scanner s = new Scanner(System.in);
         while (true) {
@@ -46,11 +50,11 @@ public class MainController {
                 break;
             }
         }
-
+        
         LOG.info("Disconnecting from IRC servers");
         ircConnectors.forEach(c -> c.disconnect());
     }
-
+    
     private void loadConfiguration() {
         LOG.info("Loading configuration");
         try {
@@ -81,7 +85,7 @@ public class MainController {
             LOG.error("Failed to read configuration!", ex);
         }
     }
-
+    
     private void loadHandlers() {
         LOG.info("Loading handlers");
         rawMessageHandlers = new LinkedList<>();
@@ -90,6 +94,18 @@ public class MainController {
             if (RawMessageHandler.class.isAssignableFrom(c)) {
                 try {
                     rawMessageHandlers.add((RawMessageHandler) c.newInstance());
+                } catch (InstantiationException | IllegalAccessException ex) {
+                    LOG.error("Error initializing handler " + c.getName(), ex);
+                }
+            } else if (LoudMultiLineMessageHandler.class.isAssignableFrom(c)) {
+                try {
+                    rawMessageHandlers.add(new LoudMultiLineMessageAdapter((LoudMultiLineMessageHandler) c.newInstance()));
+                } catch (InstantiationException | IllegalAccessException ex) {
+                    LOG.error("Error initializing handler " + c.getName(), ex);
+                }
+            } else if (LoudMessageHandler.class.isAssignableFrom(c)) {
+                try {
+                    rawMessageHandlers.add(new LoudMessageAdapter((LoudMessageHandler) c.newInstance()));
                 } catch (InstantiationException | IllegalAccessException ex) {
                     LOG.error("Error initializing handler " + c.getName(), ex);
                 }
@@ -109,11 +125,11 @@ public class MainController {
                 LOG.error("Handler registry contains class " + c.getName() + " which does not implement a supported interface");
             }
         });
-
+        
         LOG.info("Initializing handlers");
         rawMessageHandlers.forEach(h -> h.init(this));
     }
-
+    
     private void connectToServers() {
         LOG.info("Connecting to IRC servers");
         ircConnectors = new LinkedList<>();
@@ -166,9 +182,13 @@ public class MainController {
             if (channels != null) {
                 connector.setChannels(Arrays.asList(channels.split(",")), true);
             }
+            String quieterChannels = config.get("network." + networkName + ".channels.quieter");
+            if (quieterChannels != null) {
+                connector.setQuieterChannels(Arrays.asList(quieterChannels.split(",")).stream().map(String::toLowerCase).collect(Collectors.toList()));
+            }
         }
     }
-
+    
     public List<RawMessage> handleIncoming(IrcConnector origin, RawMessage message) {
         Stream<List<RawMessage>> handledStream = rawMessageHandlers.stream().map((h) -> {
             try {
@@ -180,7 +200,7 @@ public class MainController {
         });
         return handledStream.filter(l -> l != null).flatMap(l -> l.stream()).collect(Collectors.toList());
     }
-
+    
     public List<RawMessageHandler> getRawMessageHandlers() {
         return rawMessageHandlers;
     }

@@ -4,11 +4,12 @@ default.user=derpbot
 default.realname=The mighty DerpBot!
 
 # Networks
-#            Host:       network.<name of network>.host=<prefix with ssl: for encrypted connection><hostname or ip>:<port>
-#            Channels:   network.<name of network>.channels=<channels separated by comma>
-# (Optional) Nick:       network.<name of network>.nick=<nick>
-# (Optional) User:       network.<name of network>.user=<user>
-# (Optional) Real name:  network.<name of network>.realname=<real name>
+#            Host:              network.<name of network>.host=<prefix with ssl: for encrypted connection><hostname or ip>:<port>
+#            Channels:          network.<name of network>.channels=<channels separated by comma>
+#            Quieter channels:  network.<name of network>.channels.quieter=<channels separated by comma>
+# (Optional) Nick:              network.<name of network>.nick=<nick>
+# (Optional) User:              network.<name of network>.user=<user>
+# (Optional) Real name:         network.<name of network>.realname=<real name>
 network.ExampleNet.host=irc.example.com:6667
 network.ExampleNet.channels=\#yolo,\#swag
 network.ExampleNet.nick=HerpBot
@@ -16,3 +17,4 @@ network.ExampleNet.user=herypderp
 
 network.AnotherExample.host=ssl:irc.example.org:6667
 network.AnotherExample.channels=!shouting,\#derping
+network.AnotherExample.channels.quieter=#derping

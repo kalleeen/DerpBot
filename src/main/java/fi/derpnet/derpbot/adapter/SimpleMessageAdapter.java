@@ -1,21 +1,22 @@
-package fi.derpnet.derpbot.handler;
+package fi.derpnet.derpbot.adapter;
 
 import fi.derpnet.derpbot.bean.RawMessage;
 import fi.derpnet.derpbot.connector.IrcConnector;
 import fi.derpnet.derpbot.controller.MainController;
+import fi.derpnet.derpbot.handler.RawMessageHandler;
+import fi.derpnet.derpbot.handler.SimpleMessageHandler;
 import fi.derpnet.derpbot.util.RawMessageUtils;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * Adapter for using a SimpleMultiLineMessageHandler in place of a
- * RawMessageHandler
+ * Adapter for using a SimpleMessageHandler in place of a RawMessageHandler
  */
-public class SimpleMultiLineMessageAdapter implements RawMessageHandler {
+public class SimpleMessageAdapter implements RawMessageHandler {
 
-    private final SimpleMultiLineMessageHandler handler;
+    private final SimpleMessageHandler handler;
 
-    public SimpleMultiLineMessageAdapter(SimpleMultiLineMessageHandler handler) {
+    public SimpleMessageAdapter(SimpleMessageHandler handler) {
         this.handler = handler;
     }
 
@@ -24,12 +25,12 @@ public class SimpleMultiLineMessageAdapter implements RawMessageHandler {
         if (message.command.equals("PRIVMSG")) {
             String incomingRecipient = message.parameters.get(0);
             String messageBody = message.parameters.get(1);
-            List<String> responseBodies = handler.handle(message.prefix, incomingRecipient, messageBody, ircConnector);
-            if (responseBodies == null) {
+            String responseBody = handler.handle(message.prefix, incomingRecipient, messageBody, ircConnector);
+            if (responseBody == null) {
                 return null;
             }
             String responseRecipient = RawMessageUtils.getRecipientForResponse(message);
-            return responseBodies.stream().map(msg -> new RawMessage(null, "PRIVMSG", responseRecipient, ':' + msg)).collect(Collectors.toList());
+            return Collections.singletonList(new RawMessage(null, "PRIVMSG", responseRecipient, ':' + responseBody));
         } else {
             return null;
         }

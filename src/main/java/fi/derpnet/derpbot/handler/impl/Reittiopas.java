@@ -4,14 +4,14 @@ import fi.derpnet.derpbot.bean.reittiopas.Leg;
 import fi.derpnet.derpbot.bean.reittiopas.Location;
 import fi.derpnet.derpbot.connector.IrcConnector;
 import fi.derpnet.derpbot.controller.MainController;
+import fi.derpnet.derpbot.handler.LoudMultiLineMessageHandler;
 import fi.derpnet.derpbot.util.ReittiopasAPI;
-import fi.derpnet.derpbot.handler.SimpleMultiLineMessageHandler;
 import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TimeZone;
 
-public class Reittiopas implements SimpleMultiLineMessageHandler {
+public class Reittiopas implements LoudMultiLineMessageHandler {
 
     private ReittiopasAPI api;
 

@@ -54,9 +54,12 @@ The basic concept of creating a new feature is to create a new class under fi.de
 * **RawMessageHandler** - handles any RAW message that comes from the IRC server
 * **SimpleMessageHandler** - handles regular PRIVMSG messages (both on channels and in queries and sends a one-message response
 * **SimpleMultiLineMessageHandler** - same as above but is capable of sending multiple lines of response
+* **LoudMessageHandler** - handles regular PRIVMSG messages (both on channels and in queries and sends a one-message response to the sender if the original message was sent to a quieter channel
+* **LoudMultiLineMessageHandler** - same as above but is capable of sending multiple lines of response
 
 Package conventions:
+* **fi.derpnet.derpbot.adapter** - contains adapter classes (mainly for handler adapters)
 * **fi.derpnet.derpbot.bean** - contains bean-like classes
 * **fi.derpnet.derpbot.util** - contains utility classes
-* **fi.derpnet.derpbot.handler** - contains the handler-specific interfaces, adapters and the like
+* **fi.derpnet.derpbot.handler** - contains the handler-specific interfaces
 * **fi.derpnet.derpbot.handler.impl** - contains the actual handler implementations
