@@ -49,6 +49,13 @@
             <artifactId>json</artifactId>
             <version>20160212</version>
         </dependency>
+        <dependency>
+            <groupId>org.jibble.jmegahal</groupId>
+            <artifactId>jmegahal</artifactId>
+            <version>1.0</version>
+            <!--  <scope>system</scope>
+            <systemPath>${project.basedir}/lib/JMegaHal.jar</systemPath>-->
+	</dependency>
     </dependencies>
 
     <build>

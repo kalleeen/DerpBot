@@ -18,5 +18,6 @@ public class HandlerRegistry {
         handlers.add(Randomizer.class);
         handlers.add(Reittiopas.class);
         handlers.add(Pvm.class);
+        handlers.add(MegaHal.class);
     }
 }

@@ -204,4 +204,8 @@ public class MainController {
     public List<RawMessageHandler> getRawMessageHandlers() {
         return rawMessageHandlers;
     }
+    
+    public Map<String, String> getConfig(){
+        return config;
+    }
 }
