@@ -50,12 +50,10 @@
             <version>20160212</version>
         </dependency>
         <dependency>
-            <groupId>org.jibble.jmegahal</groupId>
-            <artifactId>jmegahal</artifactId>
-            <version>1.0</version>
-            <!--  <scope>system</scope>
-            <systemPath>${project.basedir}/lib/JMegaHal.jar</systemPath>-->
-	</dependency>
+            <groupId>com.googlecode.juniversalchardet</groupId>
+            <artifactId>juniversalchardet</artifactId>
+            <version>1.0.3</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -103,6 +101,15 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.5.0</version>
+                <configuration>
+                    <mainClass>fi.derpnet.derpbot.Main</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>
