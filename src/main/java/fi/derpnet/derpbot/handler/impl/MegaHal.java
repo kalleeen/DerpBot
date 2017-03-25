@@ -44,7 +44,7 @@ public class MegaHal implements SimpleMessageHandler {
 
             //TODO remove
             hal = new MegaHalBrain();
-            r.lines().forEach(hal::add);
+            r.lines().map(String::getBytes).map(CharsetUtils::convertToUTF8).forEach(hal::add);
         } catch (IOException ex) {
             LOG.warn("Unable to read brains, creating new ones", ex);
             hal = new MegaHalBrain();
@@ -53,16 +53,19 @@ public class MegaHal implements SimpleMessageHandler {
 
     @Override
     public String getCommand() {
-        return null;
+        return "!megahal";
     }
 
     @Override
     public String getHelp() {
-        return null;
+        return "Start your message with \"" + nick + "\" to have the bot reply to you. !megahal command can be used to see MegaHAL brain statistics.";
     }
 
     @Override
     public String handle(String sender, String recipient, String message, IrcConnector ircConnector) {
+        if (message.startsWith("!megahal")) {
+            return hal.getStats();
+        }
         if (!message.startsWith(nick)) {
             return null;
         }
