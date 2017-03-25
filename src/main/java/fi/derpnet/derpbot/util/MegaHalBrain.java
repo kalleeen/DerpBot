@@ -135,7 +135,6 @@ public class MegaHalBrain {
             token += end;
         }
         parts.add(token);
-        System.out.println("HERPA" + Arrays.toString(quad.tokens) + "#" + end);
         while (quad.canEnd == false) {
             Set<String> nextSet = possibleNextWords.get(quad);
             if (nextSet == null) {
@@ -144,7 +143,6 @@ public class MegaHalBrain {
             String[] nextTokens = nextSet.toArray(new String[0]);
             String nextToken = nextTokens[rand.nextInt(nextTokens.length)];
             quad = new Quad(quad.tokens[1], quad.tokens[2], quad.tokens[3], nextToken);
-            System.out.println("DERPA" + Arrays.toString(quad.tokens) + "#" + end);
             if (!quads.containsKey(quad)) {
                 break;
             }
@@ -152,7 +150,6 @@ public class MegaHalBrain {
             if (end != null) {
                 nextToken += end;
             }
-            System.out.println(Arrays.toString(quad.tokens) + "#" + end);
             parts.add(nextToken);
         }
 
