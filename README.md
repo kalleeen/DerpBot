@@ -47,6 +47,12 @@ For built version (while in the "root" of the project):
 java -jar target/DerpBot.jar
 ```
 
+Easily compile and run while developing:
+
+```
+mvn compile exec:java
+```
+
 ### Developing additional features
 
 The basic concept of creating a new feature is to create a new class under fi.derpnet.derpbot.handler.impl and implement one of the following interfaces (which ever suits your needs best), and add the class to HandlerRegistry. (This could be replaced with some sort of dynamic scanning of the classpath for compatible interfaces...)
