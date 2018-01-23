@@ -27,52 +27,55 @@ import org.apache.log4j.Logger;
 public class MegaHalBrain {
 
     private static final Logger LOG = Logger.getLogger(MegaHalBrain.class);
+    private static final int CHAIN_LENGTH = 3;
 
-    private final Map<String, Set<Quad>> wordToQuad = new HashMap<>();
-    private final Map<Quad, Character> quads = new HashMap<>();
-    private final Map<Quad, Set<String>> possibleNextWords = new HashMap();
-    private final Map<Quad, Set<String>> possiblePreviousWords = new HashMap();
+    private final Map<String, Set<Triple>> wordToChain = new HashMap<>();
+    private final Map<Triple, Character> chains = new HashMap<>();
+    private final Map<Triple, Set<String>> possibleNextWords = new HashMap();
+    private final Map<Triple, Set<String>> possiblePreviousWords = new HashMap();
     private final Random rand = new Random();
 
     public String getStats() {
-        int words = wordToQuad.size();
-        int chains = quads.size();
-        int wordAssociations = wordToQuad.values().stream().mapToInt(Set::size).sum();
-        return String.format("%d words, %d higher order chains, %d word to chain associations", words, chains, wordAssociations);
+        int words = wordToChain.size();
+        int chainCount = chains.size();
+        int wordAssociations = wordToChain.values().stream().mapToInt(Set::size).sum();
+        return String.format("%d words, %d higher order chains, %d word to chain associations", words, chainCount, wordAssociations);
     }
 
     public void add(String message) {
         List<String> sentences = Arrays.asList(message.trim().toLowerCase().split("(?<=[.!\\?])\\s+"));
         sentences.forEach((sentence) -> {
             List<String> words = Arrays.asList(sentence.split("\\s+"));
-            if (words.size() >= 4) {
-                for (int i = 0; i < words.size() - 3; i++) {
-                    Quad quad = new Quad((String) words.get(i), (String) words.get(i + 1), (String) words.get(i + 2), (String) words.get(i + 3));
+            if (words.size() >= CHAIN_LENGTH) {
+                for (int i = 0; i <= words.size() - CHAIN_LENGTH; i++) {
+//                    Quad chain = new Quad((String) words.get(i), (String) words.get(i + 1), (String) words.get(i + 2), (String) words.get(i + 3));
+                    Triple chain = new Triple((String) words.get(i), (String) words.get(i + 1), (String) words.get(i + 2));
+//                    Dual chain = new Dual((String) words.get(i), (String) words.get(i + 1));
                     Character end = null;
                     if (i == 0) {
-                        quad.canStart = true;
+                        chain.canStart = true;
                     }
-                    if (i == words.size() - 4) {
-                        quad.canEnd = true;
-                        String lastWord = quad.tokens[quad.tokens.length - 1];
+                    if (i == words.size() - CHAIN_LENGTH) {
+                        chain.canEnd = true;
+                        String lastWord = chain.tokens[chain.tokens.length - 1];
                         if (lastWord.endsWith(".") || lastWord.endsWith("!") || lastWord.endsWith("?")) {
-                            quad.tokens[quad.tokens.length - 1] = lastWord.substring(0, lastWord.length() - 1);
+                            chain.tokens[chain.tokens.length - 1] = lastWord.substring(0, lastWord.length() - 1);
                             end = lastWord.charAt(lastWord.length() - 1);
                         }
                     }
-                    if (!quads.containsKey(quad)) {
-                        quads.put(quad, end);
+                    if (!chains.containsKey(chain)) {
+                        chains.put(chain, end);
                     }
 
-                    for (int n = 0; n < 4; n++) {
+                    for (int n = 0; n < CHAIN_LENGTH; n++) {
                         String token = words.get(i + n);
                         if (token.endsWith(".") || token.endsWith("!") || token.endsWith("?")) {
                             token = token.substring(0, token.length() - 1);
                         }
-                        if (!wordToQuad.containsKey(token)) {
-                            wordToQuad.put(token, new HashSet(1));
+                        if (!wordToChain.containsKey(token)) {
+                            wordToChain.put(token, new HashSet());
                         }
-                        wordToQuad.get(token).add(quad);
+                        wordToChain.get(token).add(chain);
                     }
 
                     if (i > 0) {
@@ -80,21 +83,21 @@ public class MegaHalBrain {
                         if (token.endsWith(".") || token.endsWith("!") || token.endsWith("?")) {
                             token = token.substring(0, token.length() - 1);
                         }
-                        if (!possiblePreviousWords.containsKey(quad)) {
-                            possiblePreviousWords.put(quad, new HashSet(1));
+                        if (!possiblePreviousWords.containsKey(chain)) {
+                            possiblePreviousWords.put(chain, new HashSet());
                         }
-                        possiblePreviousWords.get(quad).add(token);
+                        possiblePreviousWords.get(chain).add(token);
                     }
 
-                    if (i < words.size() - 4) {
-                        String token = words.get(i + 4);
+                    if (i < words.size() - CHAIN_LENGTH) {
+                        String token = words.get(i + CHAIN_LENGTH);
                         if (token.endsWith(".") || token.endsWith("!") || token.endsWith("?")) {
                             token = token.substring(0, token.length() - 1);
                         }
-                        if (!possibleNextWords.containsKey(quad)) {
-                            possibleNextWords.put(quad, new HashSet(1));
+                        if (!possibleNextWords.containsKey(chain)) {
+                            possibleNextWords.put(chain, new HashSet(1));
                         }
-                        possibleNextWords.get(quad).add(token);
+                        possibleNextWords.get(chain).add(token);
                     }
                 }
             }
@@ -108,67 +111,133 @@ public class MegaHalBrain {
     public String getSentence(String word) {
         LinkedList<String> parts = new LinkedList<>();
 
-        List<Quad> startQuads;
-        if (wordToQuad.containsKey(word)) {
-            startQuads = new ArrayList<>(wordToQuad.get(word));
+        List<Triple> startChains;
+        if (wordToChain.containsKey(word)) {
+            startChains = new ArrayList<>(wordToChain.get(word));
         } else {
-            startQuads = new ArrayList<>(quads.keySet());
+            startChains = new ArrayList<>(chains.keySet());
             if (word != null) {
                 LOG.info("Didn't find chains containing word " + word);
             }
         }
 
-        if (startQuads.isEmpty()) {
+        if (startChains.isEmpty()) {
             LOG.warn("No possible words found for creating a response");
             return "";
         }
 
-        Quad middleQuad = startQuads.get(rand.nextInt(startQuads.size()));
-        Quad quad = middleQuad;
+        Triple middleChain = startChains.get(rand.nextInt(startChains.size()));
+        Triple chain = middleChain;
 
-        for (int i = 0; i < 3; i++) {
-            parts.add(quad.tokens[i]);
+        for (int i = 0; i < CHAIN_LENGTH - 1; i++) {
+            parts.add(chain.tokens[i]);
         }
-        Character end = quads.get(quad);
-        String token = quad.tokens[3];
+        Character end = chains.get(chain);
+        String token = chain.tokens[CHAIN_LENGTH - 1];
         if (end != null) {
             token += end;
         }
         parts.add(token);
-        while (quad.canEnd == false) {
-            Set<String> nextSet = possibleNextWords.get(quad);
+        while (chain.canEnd == false) {
+            Set<String> nextSet = possibleNextWords.get(chain);
             if (nextSet == null) {
                 break;
             }
-            String[] nextTokens = nextSet.toArray(new String[0]);
+            String[] nextTokens = nextSet.toArray(new String[nextSet.size()]);
             String nextToken = nextTokens[rand.nextInt(nextTokens.length)];
-            quad = new Quad(quad.tokens[1], quad.tokens[2], quad.tokens[3], nextToken);
-            if (!quads.containsKey(quad)) {
+//            chain = new Quad(chain.tokens[1], chain.tokens[2], chain.tokens[3], nextToken);
+            chain = new Triple(chain.tokens[1], chain.tokens[2], nextToken);
+//            chain = new Dual(chain.tokens[1], nextToken);
+            if (!chains.containsKey(chain)) {
                 break;
             }
-            end = quads.get(quad);
+            end = chains.get(chain);
             if (end != null) {
                 nextToken += end;
             }
             parts.add(nextToken);
         }
 
-        quad = middleQuad;
-        while (quad.canStart == false) {
-            Set<String> previousSet = possiblePreviousWords.get(quad);
+        chain = middleChain;
+        while (chain.canStart == false) {
+            Set<String> previousSet = possiblePreviousWords.get(chain);
             if (previousSet == null) {
                 break;
             }
-            String[] previousTokens = previousSet.toArray(new String[0]);
+            String[] previousTokens = previousSet.toArray(new String[previousSet.size()]);
             String previousToken = previousTokens[rand.nextInt(previousTokens.length)];
-            quad = new Quad(previousToken, quad.tokens[0], quad.tokens[1], quad.tokens[2]);
-            if (!quads.containsKey(quad)) {
+//            chain = new Quad(previousToken, chain.tokens[0], chain.tokens[1], chain.tokens[2]);
+            chain = new Triple(previousToken, chain.tokens[0], chain.tokens[1]);
+//            chain = new Dual(previousToken, chain.tokens[0]);
+            if (!chains.containsKey(chain)) {
                 break;
             }
             parts.addFirst(previousToken);
         }
 
         return StringUtils.capitalize(parts.stream().collect(Collectors.joining(" ")));
+    }
+
+    private static class Dual {
+
+        @Expose
+        String[] tokens;
+        @Expose
+        boolean canStart = false;
+        @Expose
+        boolean canEnd = false;
+
+        public Dual(String s1, String s2) {
+            tokens = new String[]{s1, s2};
+        }
+
+        @Override
+        public int hashCode() {
+            return tokens[0].hashCode()
+                    + tokens[1].hashCode();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof Dual) {
+                Dual other = (Dual) o;
+                return other.tokens[0].equals(tokens[0])
+                        && other.tokens[1].equals(tokens[1]);
+            }
+            return false;
+        }
+    }
+
+    private static class Triple {
+
+        @Expose
+        String[] tokens;
+        @Expose
+        boolean canStart = false;
+        @Expose
+        boolean canEnd = false;
+
+        public Triple(String s1, String s2, String s3) {
+            tokens = new String[]{s1, s2, s3};
+        }
+
+        @Override
+        public int hashCode() {
+            return tokens[0].hashCode()
+                    + tokens[1].hashCode()
+                    + tokens[2].hashCode();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof Triple) {
+                Triple other = (Triple) o;
+                return other.tokens[0].equals(tokens[0])
+                        && other.tokens[1].equals(tokens[1])
+                        && other.tokens[2].equals(tokens[2]);
+            }
+            return false;
+        }
     }
 
     private static class Quad {
@@ -214,8 +283,8 @@ public class MegaHalBrain {
         public JsonElement serialize(MegaHalBrain src, Type typeOfSrc, JsonSerializationContext context) {
             JsonObject obj = new JsonObject();
             Gson g = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().enableComplexMapKeySerialization().create();
-            obj.add("words", g.toJsonTree(src.wordToQuad, Map.class));
-            obj.add("quads", g.toJsonTree(src.quads, Set.class));
+            obj.add("words", g.toJsonTree(src.wordToChain, Map.class));
+            obj.add("chains", g.toJsonTree(src.chains, Set.class));
             obj.add("next", g.toJsonTree(src.possibleNextWords, Map.class));
             obj.add("previous", g.toJsonTree(src.possiblePreviousWords, Map.class));
             return obj;
