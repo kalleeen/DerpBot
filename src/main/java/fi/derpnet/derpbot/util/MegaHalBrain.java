@@ -50,6 +50,16 @@ public class MegaHalBrain {
                 if (StringUtils.endsWithAny(s, ",", ":", ";")) {
                     words.add(s.substring(0, s.length() - 1));
                     words.add(s.substring(s.length() - 1));
+                } else if (s.contains("-")) {
+                    boolean b = true;
+                    for (String ss : s.split("-")) {
+                        if (b) {
+                            b = false;
+                        } else {
+                            words.add("-");
+                        }
+                        words.add(ss);
+                    }
                 } else {
                     words.add(s);
                 }
@@ -186,6 +196,7 @@ public class MegaHalBrain {
         message = message.replaceAll(" ,", ",");
         message = message.replaceAll(" :", ":");
         message = message.replaceAll(" ;", ";");
+        message = message.replaceAll(" - ", "-");
         return StringUtils.capitalize(message);
     }
 
