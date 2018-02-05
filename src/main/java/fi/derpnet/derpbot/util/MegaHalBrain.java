@@ -45,7 +45,15 @@ public class MegaHalBrain {
     public void add(String message) {
         List<String> sentences = Arrays.asList(message.trim().toLowerCase().split("(?<=[.!\\?])\\s+"));
         sentences.forEach((sentence) -> {
-            List<String> words = Arrays.asList(sentence.split("\\s+"));
+            List<String> words = new LinkedList<>();
+            Arrays.asList(sentence.split("\\s+")).forEach(s -> {
+                if (StringUtils.endsWithAny(s, ",", ":", ";")) {
+                    words.add(s.substring(0, s.length() - 1));
+                    words.add(s.substring(s.length() - 1));
+                } else {
+                    words.add(s);
+                }
+            });
             if (words.size() >= CHAIN_LENGTH) {
                 for (int i = 0; i <= words.size() - CHAIN_LENGTH; i++) {
 //                    Quad chain = new Quad((String) words.get(i), (String) words.get(i + 1), (String) words.get(i + 2), (String) words.get(i + 3));
@@ -174,8 +182,11 @@ public class MegaHalBrain {
             }
             parts.addFirst(previousToken);
         }
-
-        return StringUtils.capitalize(parts.stream().collect(Collectors.joining(" ")));
+        String message = parts.stream().collect(Collectors.joining(" "));
+        message = message.replaceAll(" ,", ",");
+        message = message.replaceAll(" :", ":");
+        message = message.replaceAll(" ;", ";");
+        return StringUtils.capitalize(message);
     }
 
     private static class Dual {
