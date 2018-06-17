@@ -53,8 +53,7 @@ public class LinkTitle implements SimpleMultiLineMessageHandler {
                 }
                 URLConnection connection = url.openConnection();
                 connection.setReadTimeout(5000);
-                InetAddress address = InetAddress.getByName(url.getHost());
-                if (address.isSiteLocalAddress()) {
+                if (isBadAddress(InetAddress.getByName(url.getHost()))) {
                     continue;
                 }
                 try (BufferedReader in = new BufferedReader(new InputStreamReader(new BoundedInputStream(connection.getInputStream(), 1024 * 1024)))) {
@@ -67,7 +66,7 @@ public class LinkTitle implements SimpleMultiLineMessageHandler {
                     } catch (SocketTimeoutException ex) {
                         LOG.warn("Timeout getting content for: " + s, ex);
                     }
-                    Matcher m = Pattern.compile("(.*)<title([^>]*)>(?<title>[^<]*)</title>(.*)").matcher(contentBuilder);
+                    Matcher m = Pattern.compile("(.*)<head([^>]*)>(.*)<title([^>]*)>(?<title>[^<]*)</title>(.*)</head>(.*)").matcher(contentBuilder);
                     if (m.matches()) {
                         String title = StringEscapeUtils.unescapeHtml4(m.group("title").replaceAll("\\r|\\n", " ").replaceAll("\\s+", " ").trim());
                         responses.add(title);
@@ -80,4 +79,7 @@ public class LinkTitle implements SimpleMultiLineMessageHandler {
         return responses.isEmpty() ? null : responses;
     }
 
+    private boolean isBadAddress(InetAddress address) {
+        return address.isMulticastAddress() || address.isAnyLocalAddress() || address.isLoopbackAddress() || address.isLinkLocalAddress() || address.isSiteLocalAddress();
+    }
 }
