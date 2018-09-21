@@ -66,11 +66,11 @@ public class ReittiopasAPI {
             coord[1] = coordinates.getDouble(1);
 
             String name = properties.getString("name");
-            String locality = properties.getString("locality");
+            String localadmin = properties.getString("localadmin");
 
             Location location = new Location();
             location.setCoordinates(coord);
-            location.setDescription(name + ", " + locality);
+            location.setDescription(name + ", " + localadmin);
 
             return location;
         } catch (IOException | JSONException ex) {
