@@ -26,11 +26,11 @@ public class ReittiopasAPI {
     private static final String GEOCODING_API = "https://api.digitransit.fi/geocoding/v1/search";
     private static final String HELSINKI_API = "https://api.digitransit.fi/routing/v1/routers/hsl/index/graphql";
     
-    private static final SimpleDateFormat apiDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    private static final SimpleDateFormat apiTimeFormat = new SimpleDateFormat("HH:mm:ss");
+    private static final ThreadLocal<SimpleDateFormat> apiDateFormat = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd"));
+    private static final ThreadLocal<SimpleDateFormat> apiTimeFormat = ThreadLocal.withInitial(() -> new SimpleDateFormat("HH:mm:ss"));
 
     private static final Logger LOG = Logger.getLogger(ReittiopasAPI.class);
-
+    
     /**
      * Find latitude + longitude and description for search term. Searches from
      * whole Finland (Be aware!)
@@ -93,8 +93,8 @@ public class ReittiopasAPI {
                 + "from: {lat: " + start.getCoordinates()[1] + ", lon: " + start.getCoordinates()[0] + "},"
                 + "to: {lat: " + finish.getCoordinates()[1] + ", lon: " + finish.getCoordinates()[0] + "},"
                 + "modes: \"BUS,TRAM,RAIL,SUBWAY,FERRY,WALK\","
-                + "date: \"" + apiDateFormat.format(currentDate) + "\","
-                + "time: \"" + apiTimeFormat.format(currentDate) + "\","
+                + "date: \"" + apiDateFormat.get().format(currentDate) + "\","
+                + "time: \"" + apiTimeFormat.get().format(currentDate) + "\","
                 + //"walkReluctance: 2.1," +
                 //"walkBoardCost: 600," +
                 //"minTransferTime: 180," +
