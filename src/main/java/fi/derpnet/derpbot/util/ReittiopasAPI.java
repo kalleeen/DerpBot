@@ -10,6 +10,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
 import java.util.LinkedList;
@@ -24,6 +25,9 @@ public class ReittiopasAPI {
 
     private static final String GEOCODING_API = "https://api.digitransit.fi/geocoding/v1/search";
     private static final String HELSINKI_API = "https://api.digitransit.fi/routing/v1/routers/hsl/index/graphql";
+    
+    private static final SimpleDateFormat apiDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private static final SimpleDateFormat apiTimeFormat = new SimpleDateFormat("HH:mm:ss");
 
     private static final Logger LOG = Logger.getLogger(ReittiopasAPI.class);
 
@@ -37,7 +41,7 @@ public class ReittiopasAPI {
     public Location getLocation(String locationSearch) {
         try {
             String locationEncoded = URLEncoder.encode(locationSearch, "UTF-8");
-            String query = GEOCODING_API + "?text=" + locationEncoded + "&size=1";
+            String query = GEOCODING_API + "?text=" + locationEncoded + "&size=1&focus.point.lat=60.1715994&focus.point.lon=24.9411779";
 
             LOG.debug(query);
 
@@ -84,10 +88,13 @@ public class ReittiopasAPI {
      * @return The route between start and finish locations
      */
     public List<Leg> getRoute(Location start, Location finish) {
+        Date currentDate = new Date();
         String plan = "plan("
                 + "from: {lat: " + start.getCoordinates()[1] + ", lon: " + start.getCoordinates()[0] + "},"
                 + "to: {lat: " + finish.getCoordinates()[1] + ", lon: " + finish.getCoordinates()[0] + "},"
                 + "modes: \"BUS,TRAM,RAIL,SUBWAY,FERRY,WALK\","
+                + "date: \"" + apiDateFormat.format(currentDate) + "\","
+                + "time: \"" + apiTimeFormat.format(currentDate) + "\","
                 + //"walkReluctance: 2.1," +
                 //"walkBoardCost: 600," +
                 //"minTransferTime: 180," +
@@ -178,8 +185,8 @@ public class ReittiopasAPI {
                     leg.setLine(lineNumber);
                 }
 
-                leg.setStartTime(new Date(legJson.getInt("startTime")));
-                leg.setFinishTime(new Date(legJson.getInt("endTime")));
+                leg.setStartTime(new Date(legJson.getLong("startTime")));
+                leg.setFinishTime(new Date(legJson.getLong("endTime")));
 
                 Location startLocation = new Location();
                 startLocation.setCoordinates(new double[]{legJson.getJSONObject("from").getDouble("lon"), legJson.getJSONObject("from").getDouble("lat")});

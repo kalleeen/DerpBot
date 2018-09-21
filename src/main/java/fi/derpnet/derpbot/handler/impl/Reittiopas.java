@@ -67,7 +67,6 @@ public class Reittiopas implements LoudMultiLineMessageHandler {
 
             int i = 1;
             SimpleDateFormat format = new SimpleDateFormat("HH:mm");
-            format.setTimeZone(TimeZone.getTimeZone("GMT+1")); //lolwut, why do i need this
             for (Leg leg : legs) {
                 String startTime = format.format(leg.getStartTime());
                 String finishTime = format.format(leg.getFinishTime());
