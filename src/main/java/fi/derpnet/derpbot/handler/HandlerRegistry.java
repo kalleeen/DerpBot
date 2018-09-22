@@ -19,5 +19,6 @@ public class HandlerRegistry {
         handlers.add(Reittiopas.class);
         handlers.add(Pvm.class);
         handlers.add(MegaHal.class);
+        handlers.add(Maps.class);
     }
 }

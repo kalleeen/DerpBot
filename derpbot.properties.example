@@ -2,6 +2,7 @@
 default.nick=DerpBot
 default.user=derpbot
 default.realname=The mighty DerpBot!
+bing.maps.apikey=REPLACE WITH YOUR BING MAPS API KEY IF YOU WANT TO USE MAPS FEATURE
 
 # Networks
 #            Host:              network.<name of network>.host=<prefix with ssl: for encrypted connection><hostname or ip>:<port>
