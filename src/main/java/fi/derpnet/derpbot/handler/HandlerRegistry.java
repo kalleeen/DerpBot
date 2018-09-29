@@ -20,5 +20,6 @@ public class HandlerRegistry {
         handlers.add(Pvm.class);
         handlers.add(MegaHal.class);
         handlers.add(Maps.class);
+        handlers.add(Sed.class);
     }
 }
