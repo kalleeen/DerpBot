@@ -23,7 +23,7 @@ public class Sed implements SimpleMessageHandler {
 
     @Override
     public String getHelp() {
-        throw null;
+        return null;
     }
 
     @Override
@@ -47,15 +47,15 @@ public class Sed implements SimpleMessageHandler {
         String newMessage = null;
         if (m.matches()) {
             if ("g".equals(m.group("options"))) {
-                newMessage = '<' + sender.split("!", 2)[0] + "> " + previousMessage.replaceAll(m.group("from"), m.group("to"));
+                newMessage = previousMessage.replaceAll(m.group("from"), m.group("to"));
             } else {
-                newMessage = '<' + sender.split("!", 2)[0] + "> " + previousMessage.replaceFirst(m.group("from"), m.group("to"));
+                newMessage = previousMessage.replaceFirst(m.group("from"), m.group("to"));
             }
         }
         if (newMessage == null || newMessage.equals(previousMessage)) {
             return null;
         } else {
-            return newMessage;
+            return '<' + sender.split("!", 2)[0] + "> " + newMessage;
         }
     }
 }
