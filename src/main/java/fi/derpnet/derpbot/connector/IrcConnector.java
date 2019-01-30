@@ -72,7 +72,7 @@ public class IrcConnector {
         String line;
         String pendingNick = nick;
         while ((line = reader.readLine()) != null) {
-            System.out.println("< " + line);
+            System.out.println("<< " + line);
             if (line.contains("004")) {
                 // We are now logged in.
                 break;
