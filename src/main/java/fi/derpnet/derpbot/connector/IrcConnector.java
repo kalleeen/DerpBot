@@ -7,6 +7,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.Socket;
 import java.util.List;
 import java.util.Timer;
@@ -38,6 +39,7 @@ public class IrcConnector {
     private ReceiverThread receiverThread;
     private SenderThread senderThread;
     private ConnectionWatcher connectionWatcher;
+    private UncaughtExceptionHandler uncaughtExceptionHandler;
     private List<String> channels;
     private List<String> quieterChannels;
 
@@ -89,9 +91,12 @@ public class IrcConnector {
         }
 
         connectionWatcher = new ConnectionWatcher();
+        uncaughtExceptionHandler = new ThreadUncaughtExceptionHandler();
         receiverThread = new ReceiverThread(reader);
+        receiverThread.setUncaughtExceptionHandler(uncaughtExceptionHandler);
         receiverThread.start();
         senderThread = new SenderThread(writer);
+        senderThread.setUncaughtExceptionHandler(uncaughtExceptionHandler);
         senderThread.start();
 
         connectionWatcherTimer.schedule(connectionWatcher, 10000, PING_INTERVAL_MS);
@@ -237,5 +242,22 @@ public class IrcConnector {
         public void gotMessage() {
             lastMessage = System.currentTimeMillis();
         }
+    }
+    
+    private class ThreadUncaughtExceptionHandler implements UncaughtExceptionHandler {
+
+        @Override
+        public void uncaughtException(Thread thread, Throwable e) {
+            if (thread instanceof SenderThread){
+                LOG.error("SenderThread exited with uncaught exception", e);
+            }
+            else if (thread instanceof ReceiverThread){
+                LOG.error("ReceiverThread exited with uncaught exception", e);
+            }
+            else {
+                LOG.error("Unknown thread exited with uncaught exception(?)", e);
+            }
+        }
+        
     }
 }
