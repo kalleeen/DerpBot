@@ -249,13 +249,11 @@ public class IrcConnector {
         @Override
         public void uncaughtException(Thread thread, Throwable e) {
             if (thread instanceof SenderThread){
-                LOG.error("SenderThread exited with uncaught exception", e);
-            }
-            else if (thread instanceof ReceiverThread){
-                LOG.error("ReceiverThread exited with uncaught exception", e);
-            }
-            else {
-                LOG.error("Unknown thread exited with uncaught exception(?)", e);
+                LOG.error("SenderThread in network "+networkName+" exited with uncaught exception", e);
+            } else if (thread instanceof ReceiverThread){
+                LOG.error("ReceiverThread in network "+networkName+" exited with uncaught exception", e);
+            } else {
+                LOG.error("Unknown thread in network "+networkName+" exited with uncaught exception(?)", e);
             }
         }
         
