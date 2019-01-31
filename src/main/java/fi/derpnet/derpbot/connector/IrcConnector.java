@@ -72,7 +72,7 @@ public class IrcConnector {
         String line;
         String pendingNick = nick;
         while ((line = reader.readLine()) != null) {
-            System.out.println("<< " + line);
+            System.out.println(Thread.currentThread().getId() + " << " + line);
             if (line.contains("004")) {
                 // We are now logged in.
                 break;
@@ -162,7 +162,7 @@ public class IrcConnector {
             try {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    System.out.println("< " + line);
+                    System.out.println(Thread.currentThread().getId() + " < " + line);
                     connectionWatcher.gotMessage();
                     RawMessage msg = new RawMessage(line);
                     if (msg.command.equals("PING")) {
@@ -202,7 +202,7 @@ public class IrcConnector {
                     writer.write(nextMsg.toString());
                     writer.write("\r\n");
                     writer.flush();
-                    System.out.println("> " + nextMsg.toString());
+                    System.out.println(Thread.currentThread().getId() + " > " + nextMsg.toString());
                     sleep(SEND_DELAY_MS);
                 } catch (InterruptedException ex) {
                     break;
