@@ -14,7 +14,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.logging.Level;
 import javax.net.ssl.SSLSocketFactory;
 import org.apache.log4j.Logger;
 
@@ -59,12 +58,13 @@ public class IrcConnector {
     }
 
     public void connect() throws IOException {
-        boolean retry = false;
+        boolean retry;
         BufferedWriter writer = null;
         BufferedReader reader = null;
         
         do {
             try {
+                retry = false;
                 LOG.info("Connecting to " + networkName + " on " + hostname + " port " + port + (ssl ? " using SSL" : " without SSL"));
                 if (ssl) {
                     socket = SSLSocketFactory.getDefault().createSocket(hostname, port);
