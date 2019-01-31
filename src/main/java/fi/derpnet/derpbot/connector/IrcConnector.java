@@ -14,6 +14,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Level;
 import javax.net.ssl.SSLSocketFactory;
 import org.apache.log4j.Logger;
 
@@ -22,6 +23,8 @@ public class IrcConnector {
     public static final int SEND_DELAY_MS = 2500;
     public static final int PING_INTERVAL_MS = 60_000;
     public static final int PING_TIMEOUT_MS = 30_000;
+    public static final int WATCHER_POLLRATE_MS = 5_000;
+
 
     public final String networkName;
     public final String hostname;
@@ -56,39 +59,55 @@ public class IrcConnector {
     }
 
     public void connect() throws IOException {
-        LOG.info("Connecting to " + networkName + " on " + hostname + " port " + port + (ssl ? " using SSL" : " without SSL"));
-        if (ssl) {
-            socket = SSLSocketFactory.getDefault().createSocket(hostname, port);
-        } else {
-            socket = new Socket(hostname, port);
-        }
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-        BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        boolean retry = false;
+        BufferedWriter writer = null;
+        BufferedReader reader = null;
+        
+        do {
+            try {
+                LOG.info("Connecting to " + networkName + " on " + hostname + " port " + port + (ssl ? " using SSL" : " without SSL"));
+                if (ssl) {
+                    socket = SSLSocketFactory.getDefault().createSocket(hostname, port);
+                } else {
+                    socket = new Socket(hostname, port);
+                }
+                writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+                reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-        writer.write("NICK " + nick + "\r\n");
-        writer.write("USER " + user + " 8 * :" + realname + "\r\n");
-        writer.flush();
+                writer.write("NICK " + nick + "\r\n");
+                writer.write("USER " + user + " 8 * :" + realname + "\r\n");
+                writer.flush();
 
-        String line;
-        String pendingNick = nick;
-        while ((line = reader.readLine()) != null) {
-            System.out.println(Thread.currentThread().getId() + " << " + line);
-            if (line.contains("004")) {
-                // We are now logged in.
-                break;
-            } else if (line.contains("433")) {
-                //TODO prettier alt nick generation
-                pendingNick = pendingNick + "_";
-                writer.write("NICK " + pendingNick + "\r\n");
-                writer.flush();
-            } else if (line.toUpperCase().startsWith("PING ")) {
-                writer.write("PONG :" + line.substring(6) + "\r\n");
-                writer.flush();
+                String line;
+                String pendingNick = nick;
+                while ((line = reader.readLine()) != null) {
+                    System.out.println(Thread.currentThread().getId() + " << " + line);
+                    if (line.contains("004")) {
+                        // We are now logged in.
+                        break;
+                    } else if (line.contains("433")) {
+                        //TODO prettier alt nick generation
+                        pendingNick = pendingNick + "_";
+                        writer.write("NICK " + pendingNick + "\r\n");
+                        writer.flush();
+                    } else if (line.toUpperCase().startsWith("PING ")) {
+                        writer.write("PONG :" + line.substring(6) + "\r\n");
+                        writer.flush();
+                    }
+                }
+                
+                if (!nick.equals(pendingNick)) {
+                    nick = pendingNick;
+                }
+            } catch (IOException ex){
+                LOG.error("Got an IOExcpetion while trying to connect, trying again after a while", ex);
+                try {
+                    Thread.sleep(PING_TIMEOUT_MS);
+                } catch (InterruptedException e) {
+                }
+                retry = true;
             }
-        }
-        if (!nick.equals(pendingNick)) {
-            nick = pendingNick;
-        }
+        } while(retry);
 
         connectionWatcher = new ConnectionWatcher();
         uncaughtExceptionHandler = new ThreadUncaughtExceptionHandler();
@@ -227,9 +246,21 @@ public class IrcConnector {
                 if (System.currentTimeMillis() - lastMessage < PING_TIMEOUT_MS) {
                     return;
                 }
+                long lastMessageReceivedBeforeSending = lastMessage;
                 senderThread.writer.write("PING :" + System.currentTimeMillis() + "\r\n");
                 senderThread.writer.flush();
-                Thread.sleep(PING_TIMEOUT_MS);
+                long timeSent = System.currentTimeMillis();
+                
+                //No need to wait; we got a message already when sending our PING
+                if (lastMessageReceivedBeforeSending != lastMessage){
+                    return;
+                }
+                
+                //Wait for message; poll if result came and wait for maximum of ping timeout
+                while (lastMessage < timeSent && System.currentTimeMillis() - timeSent <= PING_TIMEOUT_MS){
+                    Thread.sleep(WATCHER_POLLRATE_MS);
+                }
+                //No message? --> connection lost
                 if (System.currentTimeMillis() - lastMessage > PING_TIMEOUT_MS) {
                     handleConnectionLoss();
                 }
