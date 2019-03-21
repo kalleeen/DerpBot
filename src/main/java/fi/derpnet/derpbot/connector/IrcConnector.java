@@ -19,11 +19,9 @@ import org.apache.log4j.Logger;
 
 public class IrcConnector {
 
-    public static final int SEND_DELAY_MS = 2500;
     public static final int PING_INTERVAL_MS = 60_000;
     public static final int PING_TIMEOUT_MS = 30_000;
     public static final int WATCHER_POLLRATE_MS = 5_000;
-
 
     public final String networkName;
     public final String hostname;
@@ -31,6 +29,7 @@ public class IrcConnector {
     public final boolean ssl;
     public final String user;
     public final String realname;
+    public final int ratelimit;
 
     private static final Logger LOG = Logger.getLogger(IrcConnector.class);
 
@@ -45,7 +44,7 @@ public class IrcConnector {
     private List<String> channels;
     private List<String> quieterChannels;
 
-    public IrcConnector(String networkName, String hostname, int port, boolean ssl, String user, String realname, String nick, MainController controller) {
+    public IrcConnector(String networkName, String hostname, int port, boolean ssl, String user, String realname, String nick, int ratelimit, MainController controller) {
         this.networkName = networkName;
         this.hostname = hostname;
         this.port = port;
@@ -53,6 +52,7 @@ public class IrcConnector {
         this.user = user;
         this.realname = realname;
         this.nick = nick;
+        this.ratelimit = ratelimit;
         this.controller = controller;
         connectionWatcherTimer = new Timer();
     }
@@ -61,7 +61,7 @@ public class IrcConnector {
         boolean retry;
         BufferedWriter writer = null;
         BufferedReader reader = null;
-        
+
         do {
             try {
                 retry = false;
@@ -95,11 +95,11 @@ public class IrcConnector {
                         writer.flush();
                     }
                 }
-                
+
                 if (!nick.equals(pendingNick)) {
                     nick = pendingNick;
                 }
-            } catch (IOException ex){
+            } catch (IOException ex) {
                 LOG.error("Got an IOExcpetion while trying to connect, trying again after a while", ex);
                 try {
                     Thread.sleep(PING_TIMEOUT_MS);
@@ -107,7 +107,7 @@ public class IrcConnector {
                 }
                 retry = true;
             }
-        } while(retry);
+        } while (retry);
 
         connectionWatcher = new ConnectionWatcher();
         uncaughtExceptionHandler = new ThreadUncaughtExceptionHandler();
@@ -222,7 +222,7 @@ public class IrcConnector {
                     writer.write("\r\n");
                     writer.flush();
                     System.out.println(Thread.currentThread().getId() + " > " + nextMsg.toString());
-                    sleep(SEND_DELAY_MS);
+                    sleep(ratelimit);
                 } catch (InterruptedException ex) {
                     break;
                 } catch (IOException ex) {
@@ -250,14 +250,14 @@ public class IrcConnector {
                 senderThread.writer.write("PING :" + System.currentTimeMillis() + "\r\n");
                 senderThread.writer.flush();
                 long timeSent = System.currentTimeMillis();
-                
+
                 //No need to wait; we got a message already when sending our PING
-                if (lastMessageReceivedBeforeSending != lastMessage){
+                if (lastMessageReceivedBeforeSending != lastMessage) {
                     return;
                 }
-                
+
                 //Wait for message; poll if result came and wait for maximum of ping timeout
-                while (lastMessage < timeSent && System.currentTimeMillis() - timeSent <= PING_TIMEOUT_MS){
+                while (lastMessage < timeSent && System.currentTimeMillis() - timeSent <= PING_TIMEOUT_MS) {
                     Thread.sleep(WATCHER_POLLRATE_MS);
                 }
                 //No message? --> connection lost
@@ -274,19 +274,19 @@ public class IrcConnector {
             lastMessage = System.currentTimeMillis();
         }
     }
-    
+
     private class ThreadUncaughtExceptionHandler implements UncaughtExceptionHandler {
 
         @Override
         public void uncaughtException(Thread thread, Throwable e) {
-            if (thread instanceof SenderThread){
-                LOG.error("SenderThread in network "+networkName+" exited with uncaught exception", e);
-            } else if (thread instanceof ReceiverThread){
-                LOG.error("ReceiverThread in network "+networkName+" exited with uncaught exception", e);
+            if (thread instanceof SenderThread) {
+                LOG.error("SenderThread in network " + networkName + " exited with uncaught exception", e);
+            } else if (thread instanceof ReceiverThread) {
+                LOG.error("ReceiverThread in network " + networkName + " exited with uncaught exception", e);
             } else {
-                LOG.error("Unknown thread in network "+networkName+" exited with uncaught exception(?)", e);
+                LOG.error("Unknown thread in network " + networkName + " exited with uncaught exception(?)", e);
             }
         }
-        
+
     }
 }

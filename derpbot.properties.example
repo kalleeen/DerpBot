@@ -10,16 +10,19 @@ http.api.secret=
 bing.maps.apikey=
 
 # Networks
-#            Host:              network.<name of network>.host=<prefix with ssl: for encrypted connection><hostname or ip>:<port>
-#            Channels:          network.<name of network>.channels=<channels separated by comma>
-# (Optional) Quieter channels:  network.<name of network>.channels.quieter=<channels separated by comma>
-# (Optional) Nick:              network.<name of network>.nick=<nick>
-# (Optional) User:              network.<name of network>.user=<user>
-# (Optional) Real name:         network.<name of network>.realname=<real name>
+#            Host:                network.<name of network>.host=<prefix with ssl: for encrypted connection><hostname or ip>:<port>
+#            Channels:            network.<name of network>.channels=<channels separated by comma>
+# (Optional) Quieter channels:    network.<name of network>.channels.quieter=<channels separated by comma>
+# (Optional) Nick:                network.<name of network>.nick=<nick>
+# (Optional) User:                network.<name of network>.user=<user>
+# (Optional) Real name:           network.<name of network>.realname=<real name>
+# (Optional) Message rate limit:  network.<name of network>.ratelimit=<message ratelimit in ms>
+
 network.ExampleNet.host=irc.example.com:6667
 network.ExampleNet.channels=\#yolo,\#swag
 network.ExampleNet.nick=HerpBot
 network.ExampleNet.user=herypderp
+network.ExampleNet.ratelimit=1000
 
 network.AnotherExample.host=ssl:irc.example.org:6697
 network.AnotherExample.channels=!shouting,\#derping

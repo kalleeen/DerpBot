@@ -32,19 +32,19 @@ import java.util.stream.Stream;
 import org.apache.log4j.Logger;
 
 public class MainController {
-    
+
     private static final Logger LOG = Logger.getLogger(MainController.class);
     private List<RawMessageHandler> rawMessageHandlers;
     private Map<String, String> config;
     private List<IrcConnector> ircConnectors;
     private HttpApiDaemon httpApi = new HttpApiDaemon();
-    
+
     public void start() {
         loadConfiguration();
         loadHandlers();
         connectToServers();
         httpApi.init(this);
-        
+
         LOG.info("Ready");
         Scanner s = new Scanner(System.in);
         while (true) {
@@ -53,11 +53,11 @@ public class MainController {
                 break;
             }
         }
-        
+
         LOG.info("Disconnecting from IRC servers");
         ircConnectors.forEach(c -> c.disconnect());
     }
-    
+
     private void loadConfiguration() {
         LOG.info("Loading configuration");
         try {
@@ -88,7 +88,7 @@ public class MainController {
             LOG.error("Failed to read configuration!", ex);
         }
     }
-    
+
     private void loadHandlers() {
         LOG.info("Loading handlers");
         rawMessageHandlers = new LinkedList<>();
@@ -128,11 +128,11 @@ public class MainController {
                 LOG.error("Handler registry contains class " + c.getName() + " which does not implement a supported interface");
             }
         });
-        
+
         LOG.info("Initializing handlers");
         rawMessageHandlers.forEach(h -> h.init(this));
     }
-    
+
     private void connectToServers() {
         LOG.info("Connecting to IRC servers");
         ircConnectors = new LinkedList<>();
@@ -173,7 +173,13 @@ public class MainController {
                     realname = "DerpBot";
                 }
             }
-            IrcConnector connector = new IrcConnector(networkName, hostname, port, ssl, user, realname, nick, this);
+            int ratelimit;
+            try {
+                ratelimit = Integer.parseInt(config.get("network." + networkName + ".ratelimit"));
+            } catch (NullPointerException | NumberFormatException ex) {
+                ratelimit = 2500;
+            }
+            IrcConnector connector = new IrcConnector(networkName, hostname, port, ssl, user, realname, nick, ratelimit, this);
             ircConnectors.add(connector);
             try {
                 connector.connect();
@@ -191,7 +197,7 @@ public class MainController {
             }
         }
     }
-    
+
     public List<RawMessage> handleIncoming(IrcConnector origin, RawMessage message) {
         Stream<List<RawMessage>> handledStream = rawMessageHandlers.stream().map((h) -> {
             try {
@@ -203,12 +209,12 @@ public class MainController {
         });
         return handledStream.filter(l -> l != null).flatMap(l -> l.stream()).collect(Collectors.toList());
     }
-    
+
     public List<RawMessageHandler> getRawMessageHandlers() {
         return rawMessageHandlers;
     }
-    
-    public Map<String, String> getConfig(){
+
+    public Map<String, String> getConfig() {
         return config;
     }
 
