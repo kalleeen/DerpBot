@@ -9,6 +9,7 @@ import fi.derpnet.derpbot.adapter.SimpleMessageAdapter;
 import fi.derpnet.derpbot.handler.RawMessageHandler;
 import fi.derpnet.derpbot.handler.SimpleMessageHandler;
 import fi.derpnet.derpbot.adapter.SimpleMultiLineMessageAdapter;
+import fi.derpnet.derpbot.httpapi.HttpApiDaemon;
 import fi.derpnet.derpbot.handler.LoudMessageHandler;
 import fi.derpnet.derpbot.handler.LoudMultiLineMessageHandler;
 import fi.derpnet.derpbot.handler.SimpleMultiLineMessageHandler;
@@ -36,11 +37,13 @@ public class MainController {
     private List<RawMessageHandler> rawMessageHandlers;
     private Map<String, String> config;
     private List<IrcConnector> ircConnectors;
+    private HttpApiDaemon httpApi = new HttpApiDaemon();
     
     public void start() {
         loadConfiguration();
         loadHandlers();
         connectToServers();
+        httpApi.init(this);
         
         LOG.info("Ready");
         Scanner s = new Scanner(System.in);
@@ -207,5 +210,9 @@ public class MainController {
     
     public Map<String, String> getConfig(){
         return config;
+    }
+
+    public List<IrcConnector> getIrcConnectors() {
+        return ircConnectors;
     }
 }

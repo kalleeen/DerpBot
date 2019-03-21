@@ -30,7 +30,7 @@ public class RawMessage {
      * NOT use a prefix when sending a message; if they use one, the only valid
      * prefix is the registered nickname associated with the client.
      * @param command command
-     * @param parameters parameters (up to 15). Note: the leading semicolon must
+     * @param parameters parameters (up to 15). Note: the leading colon must
      * be present in the last parameter if it requires one
      */
     public RawMessage(String prefix, String command, List<String> parameters) {
@@ -53,7 +53,7 @@ public class RawMessage {
      * NOT use a prefix when sending a message; if they use one, the only valid
      * prefix is the registered nickname associated with the client.
      * @param command command
-     * @param parameters parameters (up to 15). Note: the leading semicolon must
+     * @param parameters parameters (up to 15). Note: the leading colon must
      * be present in the last parameter if it requires one
      */
     public RawMessage(String prefix, String command, String... parameters) {

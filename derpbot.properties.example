@@ -1,8 +1,13 @@
-# Global stuff and defaults
+# Defaults
 default.nick=DerpBot
 default.user=derpbot
 default.realname=The mighty DerpBot!
-bing.maps.apikey=REPLACE WITH YOUR BING MAPS API KEY IF YOU WANT TO USE MAPS FEATURE
+
+# Secret for using the http api. Leave empty to disable the http api.
+http.api.secret=
+
+# Bing maps. Leave empty to disable maps features
+bing.maps.apikey=
 
 # Networks
 #            Host:              network.<name of network>.host=<prefix with ssl: for encrypted connection><hostname or ip>:<port>
