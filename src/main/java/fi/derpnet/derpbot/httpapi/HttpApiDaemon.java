@@ -3,6 +3,7 @@ package fi.derpnet.derpbot.httpapi;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.httpapi.handler.MessageHandler;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -14,11 +15,11 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
 public class HttpApiDaemon {
-    
+
     private static final Logger LOG = Logger.getLogger(HttpApiDaemon.class);
-    
+
     private static final int HTTP_PORT = 8080;
-    
+
     public void init(MainController controller) {
         String secret = controller.getConfig().get("http.api.secret");
         if (StringUtils.isBlank(secret)) {
@@ -27,7 +28,7 @@ public class HttpApiDaemon {
         }
         try {
             MessageHandler messageHandler = new MessageHandler(controller);
-            Server server = new Server(HTTP_PORT);
+            Server server = new Server(new InetSocketAddress("localhost", HTTP_PORT));
             server.setHandler(new AbstractHandler() {
                 @Override
                 public void handle(String path, Request request, HttpServletRequest servletRequest, HttpServletResponse response) throws IOException, ServletException {

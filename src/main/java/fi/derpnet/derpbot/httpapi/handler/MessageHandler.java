@@ -17,10 +17,13 @@ public class MessageHandler {
     public void handle(String str) {
         MessagePayload msg = new Gson().fromJson(str, MessagePayload.class);
         if (msg != null && msg.message != null) {
-            Stream.of(msg.message.split("\n")).filter(StringUtils::isNotBlank).forEach(message -> {
-                RawMessage rawMessage = new RawMessage(null, "privmsg", msg.recipient, ':' + message);
-                controller.getIrcConnectors().stream().filter(c -> c.networkName.equals(msg.network)).findAny().ifPresent(c -> c.send(rawMessage));
-            });
+            controller.getIrcConnectors().stream()
+                    .filter(c -> c.networkName.equals(msg.network))
+                    .findAny()
+                    .ifPresent(connector -> Stream.of(msg.message.split("\n"))
+                    .filter(StringUtils::isNotBlank)
+                    .map(message -> new RawMessage(null, "privmsg", msg.recipient, ':' + message))
+                    .forEach(connector::send));
         }
     }
 
