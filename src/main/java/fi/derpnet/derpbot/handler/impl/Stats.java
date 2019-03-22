@@ -48,7 +48,7 @@ public class Stats implements SimpleMessageHandler {
         // Get the stats print first, otherwise updating the stats below will skew the result
         String statsPrint = getStatsPrint(sender, message, statsMap);
 
-        StatsData stats = statsMap.get(sender);
+        StatsData stats = statsMap.get(IrcUtils.getNickFromSender(sender));
         if (stats == null) {
             stats = new StatsData();
             stats.nick = IrcUtils.getNickFromSender(sender);
