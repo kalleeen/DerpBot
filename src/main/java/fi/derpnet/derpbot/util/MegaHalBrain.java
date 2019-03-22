@@ -28,6 +28,7 @@ public class MegaHalBrain {
 
     private static final Logger LOG = Logger.getLogger(MegaHalBrain.class);
     private static final int CHAIN_LENGTH = 3;
+    private static final int SENTENCE_SANITY_LENGTH = 20;
 
     private final Map<String, Set<Triple>> wordToChain = new HashMap<>();
     private final Map<Triple, Character> chains = new HashMap<>();
@@ -156,7 +157,7 @@ public class MegaHalBrain {
             token += end;
         }
         parts.add(token);
-        while (chain.canEnd == false) {
+        for (int i = 0; chain.canEnd == false && i <= SENTENCE_SANITY_LENGTH; i++) {
             Set<String> nextSet = possibleNextWords.get(chain);
             if (nextSet == null) {
                 break;
@@ -177,7 +178,7 @@ public class MegaHalBrain {
         }
 
         chain = middleChain;
-        while (chain.canStart == false) {
+        for (int i = 0; chain.canStart == false && i <= SENTENCE_SANITY_LENGTH; i++) {
             Set<String> previousSet = possiblePreviousWords.get(chain);
             if (previousSet == null) {
                 break;
