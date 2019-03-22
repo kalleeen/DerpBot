@@ -93,15 +93,7 @@ public class MainController {
         HandlerRegistry.handlers.forEach(c -> {
             LOG.info("Registering message handler " + c.getSimpleName());
             try {
-                if (RawMessageHandler.class.isAssignableFrom(c)) {
-                    rawMessageHandlers.add((RawMessageHandler) c.newInstance());
-                } else if (SimpleMultiLineMessageHandler.class.isAssignableFrom(c)) {
-                    rawMessageHandlers.add(new SimpleMultiLineMessageAdapter((SimpleMultiLineMessageHandler) c.newInstance()));
-                } else if (SimpleMessageHandler.class.isAssignableFrom(c)) {
-                    rawMessageHandlers.add(new SimpleMessageAdapter((SimpleMessageHandler) c.newInstance()));
-                } else {
-                    LOG.error("Handler registry contains class " + c.getName() + " which does not implement a supported interface");
-                }
+                rawMessageHandlers.add(c.newInstance().getRawMessageHandler());
             } catch (InstantiationException | IllegalAccessException ex) {
                 LOG.error("Error initializing handler " + c.getName(), ex);
             }

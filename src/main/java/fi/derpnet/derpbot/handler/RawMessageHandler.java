@@ -19,4 +19,9 @@ public interface RawMessageHandler extends GenericHandler {
      * does not handle this message
      */
     List<RawMessage> handle(RawMessage message, IrcConnector ircConnector);
+
+    @Override
+    default RawMessageHandler getRawMessageHandler() {
+        return this;
+    }
 }

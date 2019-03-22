@@ -1,5 +1,6 @@
 package fi.derpnet.derpbot.handler;
 
+import fi.derpnet.derpbot.adapter.SimpleMultiLineMessageAdapter;
 import fi.derpnet.derpbot.connector.IrcConnector;
 import java.util.List;
 
@@ -20,4 +21,9 @@ public interface SimpleMultiLineMessageHandler extends GenericHandler {
      * null if this handler does not handle this message
      */
     List<String> handle(String sender, String recipient, String message, IrcConnector ircConnector);
+
+    @Override
+    default RawMessageHandler getRawMessageHandler() {
+        return new SimpleMultiLineMessageAdapter(this);
+    }
 }

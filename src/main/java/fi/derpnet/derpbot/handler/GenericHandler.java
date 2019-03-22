@@ -31,6 +31,13 @@ public interface GenericHandler {
     String getHelp();
 
     /**
+     * Get the RawMessageHandler offered by the implementations
+     *
+     * @return The RawMessageHandler
+     */
+    RawMessageHandler getRawMessageHandler();
+
+    /**
      * Gets the "loudness" of this handler, a "loud" handler is considered one
      * that generates a lot of text and/or is considered "spammy"
      *
