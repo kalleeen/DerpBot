@@ -15,24 +15,25 @@ import java.net.URL;
 import org.apache.commons.io.IOUtils;
 
 public class SslLabs implements SimpleMessageHandler {
-    
-    public static final String BASE_URL = "https://api.ssllabs.com/api/v2/analyze?host=";
-    public static final int TIMEOUT_MS = 300_000;
-    
+
+    private static final String API_BASE_URL = "https://api.ssllabs.com/api/v2/analyze?host=";
+    private static final String LINK_BASE_URL = "https://www.ssllabs.com/ssltest/analyze.html?latest&d=";
+    private static final int TIMEOUT_MS = 300_000;
+
     @Override
     public void init(MainController controller) {
     }
-    
+
     @Override
     public String getCommand() {
         return "!ssllabs";
     }
-    
+
     @Override
     public String getHelp() {
         return "SSL Labs scan of a specific host";
     }
-    
+
     @Override
     public String handle(String sender, String recipient, String message, IrcConnector ircConnector) {
         if (!message.startsWith("!ssllabs ")) {
@@ -43,7 +44,7 @@ public class SslLabs implements SimpleMessageHandler {
             host = host.substring(0, host.indexOf('/'));
         }
         try {
-            URL url = new URL(BASE_URL + host);
+            URL url = new URL(API_BASE_URL + host);
             try (InputStream is = url.openStream()) {
                 String response = IOUtils.toString(is, "UTF-8");
                 JsonParser parser = new JsonParser();
@@ -68,28 +69,28 @@ public class SslLabs implements SimpleMessageHandler {
             return "Failed to get analysis for host " + host + " due to " + ex.getMessage() + ". Invalid hostname?";
         }
     }
-    
+
     private class PollerThread extends Thread {
-        
+
         private final IrcConnector ircConnector;
         private final String host;
         private final long start;
         private final String recipient;
         private String returnMsg;
-        
+
         public PollerThread(IrcConnector ircConnector, String host, String recipient) {
             this.ircConnector = ircConnector;
             this.host = host;
             this.recipient = recipient;
             start = System.currentTimeMillis();
         }
-        
+
         @Override
         public void run() {
             loop:
             while (true) {
                 try {
-                    URL url = new URL(BASE_URL + host);
+                    URL url = new URL(API_BASE_URL + host);
                     try (InputStream is = url.openStream()) {
                         String response = IOUtils.toString(is, "UTF-8");
                         JsonParser parser = new JsonParser();
@@ -99,7 +100,7 @@ public class SslLabs implements SimpleMessageHandler {
                             case "READY":
                                 JsonObject endpoint = elem.getAsJsonObject().get("endpoints").getAsJsonArray().iterator().next().getAsJsonObject();
                                 try {
-                                    returnMsg = "SSL Labs grade for " + host + ": " + endpoint.get("grade").getAsString();
+                                    returnMsg = "SSL Labs grade for " + host + ": " + endpoint.get("grade").getAsString() + " : " + LINK_BASE_URL + host;
                                 } catch (Exception ex) {
                                     returnMsg = "SSL Labs analysis for " + host + ": " + endpoint.get("statusMessage").getAsString();
                                 }
