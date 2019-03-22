@@ -29,4 +29,14 @@ public interface GenericHandler {
      * @return The help line, or null if there's no help
      */
     String getHelp();
+
+    /**
+     * Gets the "loudness" of this handler, a "loud" handler is considered one
+     * that generates a lot of text and/or is considered "spammy"
+     *
+     * @return The "loudness"
+     */
+    default boolean isLoud() {
+        return false;
+    }
 }

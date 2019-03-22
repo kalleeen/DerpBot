@@ -3,7 +3,7 @@ package fi.derpnet.derpbot.handler.impl;
 import fi.derpnet.derpbot.connector.IrcConnector;
 import fi.derpnet.derpbot.constants.AsciiFormatting;
 import fi.derpnet.derpbot.controller.MainController;
-import fi.derpnet.derpbot.handler.LoudMultiLineMessageHandler;
+import fi.derpnet.derpbot.handler.SimpleMultiLineMessageHandler;
 import fi.derpnet.derpbot.util.CommandUtils;
 import fi.derpnet.derpbot.util.IrcFormatter;
 import java.io.IOException;
@@ -29,7 +29,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-public class Poikkeusinfo implements LoudMultiLineMessageHandler {
+public class Poikkeusinfo implements SimpleMultiLineMessageHandler {
 
     public static final String API_URL = "http://www.poikkeusinfo.fi/xml/v2/fi";
     private SAXParser parser;
@@ -52,6 +52,11 @@ public class Poikkeusinfo implements LoudMultiLineMessageHandler {
     @Override
     public String getHelp() {
         return "HSL Poikkeusinfo";
+    }
+
+    @Override
+    public boolean isLoud() {
+        return true;
     }
 
     @Override

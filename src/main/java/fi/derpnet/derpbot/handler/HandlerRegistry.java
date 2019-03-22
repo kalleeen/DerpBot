@@ -5,7 +5,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class HandlerRegistry {
-    public static final List<Class> handlers = new LinkedList<>();
+
+    public static final List<Class<? extends GenericHandler>> handlers = new LinkedList<>();
+
     static {
         handlers.add(Echo.class);
         handlers.add(LinkTitle.class);

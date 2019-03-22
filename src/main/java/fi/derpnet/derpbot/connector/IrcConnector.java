@@ -11,9 +11,6 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.Socket;
 import java.util.List;
 import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import javax.net.ssl.SSLSocketFactory;
 import org.apache.log4j.Logger;
 
@@ -35,12 +32,12 @@ public class IrcConnector {
 
     private final MainController controller;
     private final Timer connectionWatcherTimer;
+
     private String nick;
     private Socket socket;
     private ReceiverThread receiverThread;
     private SenderThread senderThread;
     private ConnectionWatcher connectionWatcher;
-    private UncaughtExceptionHandler uncaughtExceptionHandler;
     private List<String> channels;
     private List<String> quieterChannels;
 
@@ -109,14 +106,17 @@ public class IrcConnector {
             }
         } while (retry);
 
-        connectionWatcher = new ConnectionWatcher();
-        uncaughtExceptionHandler = new ThreadUncaughtExceptionHandler();
-        receiverThread = new ReceiverThread(reader);
-        receiverThread.setUncaughtExceptionHandler(uncaughtExceptionHandler);
-        receiverThread.start();
-        senderThread = new SenderThread(writer);
-        senderThread.setUncaughtExceptionHandler(uncaughtExceptionHandler);
+        UncaughtExceptionHandler exceptionHandler = (thread, throwable) -> LOG.error(thread.getClass().getSimpleName() + " in network " + networkName + " exited with uncaught exception", throwable);
+
+        connectionWatcher = new ConnectionWatcher(senderThread, this::handleConnectionLoss);
+        senderThread = new SenderThread(writer, ratelimit);
+        receiverThread = new ReceiverThread(reader, senderThread, connectionWatcher::gotMessage, this::handleConnectionLoss, msg -> controller.handleIncoming(this, msg));
+
+        senderThread.setUncaughtExceptionHandler(exceptionHandler);
+        receiverThread.setUncaughtExceptionHandler(exceptionHandler);
+
         senderThread.start();
+        receiverThread.start();
 
         connectionWatcherTimer.schedule(connectionWatcher, 10000, PING_INTERVAL_MS);
     }
@@ -133,7 +133,7 @@ public class IrcConnector {
     }
 
     public void send(RawMessage msg) {
-        senderThread.messageQueue.add(msg);
+        senderThread.send(msg);
     }
 
     public void setChannels(List<String> channels, boolean join) {
@@ -141,7 +141,7 @@ public class IrcConnector {
         if (join) {
             channels.forEach(channel -> {
                 LOG.info("Joining channel " + channel + " on " + networkName);
-                senderThread.messageQueue.add(new RawMessage(null, "JOIN", channel));
+                senderThread.send(new RawMessage(null, "JOIN", channel));
             });
         }
     }
@@ -161,132 +161,10 @@ public class IrcConnector {
             connect();
             channels.forEach(channel -> {
                 LOG.info("Joining channel " + channel + " on " + networkName + " after a reconnect");
-                senderThread.messageQueue.add(new RawMessage(null, "JOIN", channel));
+                senderThread.send(new RawMessage(null, "JOIN", channel));
             });
         } catch (IOException ex) {
             LOG.error("Failed to reconnect to " + hostname + ", this connector may be in an inconsistent state!", ex);
         }
-    }
-
-    private class ReceiverThread extends Thread {
-
-        private final BufferedReader reader;
-
-        public ReceiverThread(BufferedReader reader) {
-            this.reader = reader;
-        }
-
-        @Override
-        public void run() {
-            try {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    System.out.println(Thread.currentThread().getId() + " < " + line);
-                    connectionWatcher.gotMessage();
-                    RawMessage msg = new RawMessage(line);
-                    if (msg.command.equals("PING")) {
-                        // We must respond to PINGs to avoid being disconnected.
-                        // The response is written directly to avoid delay due to outbound message queue
-                        senderThread.writer.write("PONG :" + line.substring(6) + "\r\n");
-                        senderThread.writer.flush();
-                    }
-                    List<RawMessage> responses = controller.handleIncoming(IrcConnector.this, msg);
-                    if (responses != null) {
-                        senderThread.messageQueue.addAll(responses);
-                    }
-                }
-                LOG.warn("Got EOF from " + hostname + ", socket closed? Reconnecting...");
-                handleConnectionLoss();
-            } catch (IOException ex) {
-                LOG.error("Writes not working for network " + networkName + ". Connection lost?", ex);
-            }
-        }
-    }
-
-    private class SenderThread extends Thread {
-
-        private final BufferedWriter writer;
-        private final BlockingQueue<RawMessage> messageQueue;
-
-        public SenderThread(BufferedWriter writer) {
-            this.writer = writer;
-            messageQueue = new LinkedBlockingQueue<>();
-        }
-
-        @Override
-        public void run() {
-            while (!interrupted()) {
-                try {
-                    RawMessage nextMsg = messageQueue.take();
-                    writer.write(nextMsg.toString());
-                    writer.write("\r\n");
-                    writer.flush();
-                    System.out.println(Thread.currentThread().getId() + " > " + nextMsg.toString());
-                    sleep(ratelimit);
-                } catch (InterruptedException ex) {
-                    break;
-                } catch (IOException ex) {
-                    LOG.error("Writes not working for network " + networkName + ". Connection lost?", ex);
-                }
-            }
-        }
-    }
-
-    private class ConnectionWatcher extends TimerTask {
-
-        private long lastMessage;
-
-        public ConnectionWatcher() {
-            lastMessage = System.currentTimeMillis();
-        }
-
-        @Override
-        public void run() {
-            try {
-                if (System.currentTimeMillis() - lastMessage < PING_TIMEOUT_MS) {
-                    return;
-                }
-                long lastMessageReceivedBeforeSending = lastMessage;
-                senderThread.writer.write("PING :" + System.currentTimeMillis() + "\r\n");
-                senderThread.writer.flush();
-                long timeSent = System.currentTimeMillis();
-
-                //No need to wait; we got a message already when sending our PING
-                if (lastMessageReceivedBeforeSending != lastMessage) {
-                    return;
-                }
-
-                //Wait for message; poll if result came and wait for maximum of ping timeout
-                while (lastMessage < timeSent && System.currentTimeMillis() - timeSent <= PING_TIMEOUT_MS) {
-                    Thread.sleep(WATCHER_POLLRATE_MS);
-                }
-                //No message? --> connection lost
-                if (System.currentTimeMillis() - lastMessage > PING_TIMEOUT_MS) {
-                    handleConnectionLoss();
-                }
-            } catch (IOException ex) {
-                handleConnectionLoss();
-            } catch (InterruptedException ex) {
-            }
-        }
-
-        public void gotMessage() {
-            lastMessage = System.currentTimeMillis();
-        }
-    }
-
-    private class ThreadUncaughtExceptionHandler implements UncaughtExceptionHandler {
-
-        @Override
-        public void uncaughtException(Thread thread, Throwable e) {
-            if (thread instanceof SenderThread) {
-                LOG.error("SenderThread in network " + networkName + " exited with uncaught exception", e);
-            } else if (thread instanceof ReceiverThread) {
-                LOG.error("ReceiverThread in network " + networkName + " exited with uncaught exception", e);
-            } else {
-                LOG.error("Unknown thread in network " + networkName + " exited with uncaught exception(?)", e);
-            }
-        }
-
     }
 }

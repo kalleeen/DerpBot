@@ -4,14 +4,13 @@ import fi.derpnet.derpbot.bean.reittiopas.Leg;
 import fi.derpnet.derpbot.bean.reittiopas.Location;
 import fi.derpnet.derpbot.connector.IrcConnector;
 import fi.derpnet.derpbot.controller.MainController;
-import fi.derpnet.derpbot.handler.LoudMultiLineMessageHandler;
+import fi.derpnet.derpbot.handler.SimpleMultiLineMessageHandler;
 import fi.derpnet.derpbot.util.ReittiopasAPI;
 import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.TimeZone;
 
-public class Reittiopas implements LoudMultiLineMessageHandler {
+public class Reittiopas implements SimpleMultiLineMessageHandler {
 
     private ReittiopasAPI api;
 
@@ -28,6 +27,11 @@ public class Reittiopas implements LoudMultiLineMessageHandler {
     @Override
     public String getHelp() {
         return "HSL Reittiopas, !reittiopas start -- destination";
+    }
+
+    @Override
+    public boolean isLoud() {
+        return true;
     }
 
     @Override
@@ -81,7 +85,7 @@ public class Reittiopas implements LoudMultiLineMessageHandler {
                     print.add(String.format("%d. [%s] %s --> %s --> [%s] %s (%s)", i, startTime, startDescription, legMode, finishTime, finishDescription, finishCode));
                 } else if (legMode.equals("WALK") && finishCode == null) {
                     print.add(String.format("%d. [%s] %s (%s) --> %s --> [%s] %s", i, startTime, startDescription, startCode, legMode, finishTime, finishDescription));
-                }  else if (legMode.equals("WALK")) {
+                } else if (legMode.equals("WALK")) {
                     print.add(String.format("%d. [%s] %s (%s) --> %s --> [%s] %s (%s)", i, startTime, startDescription, startCode, legMode, finishTime, finishDescription, finishCode));
                 } else {
                     print.add(String.format("%d. [%s] %s (%s) --> %s (Line: %s) --> [%s] %s (%s)", i, startTime, startDescription, startCode, legMode, legLine, finishTime, finishDescription, finishCode));

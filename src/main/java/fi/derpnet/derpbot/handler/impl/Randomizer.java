@@ -35,7 +35,7 @@ public class Randomizer implements SimpleMessageHandler {
                 if (max <= 0) {
                     return "Max value must be greater than 0";
                 }
-            } catch (Exception ex) {
+            } catch (NumberFormatException ex) {
                 return "Invalid number '" + value.trim() + '\'';
             }
         }

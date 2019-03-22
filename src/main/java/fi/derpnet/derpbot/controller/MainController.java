@@ -1,7 +1,5 @@
 package fi.derpnet.derpbot.controller;
 
-import fi.derpnet.derpbot.adapter.LoudMessageAdapter;
-import fi.derpnet.derpbot.adapter.LoudMultiLineMessageAdapter;
 import fi.derpnet.derpbot.bean.RawMessage;
 import fi.derpnet.derpbot.connector.IrcConnector;
 import fi.derpnet.derpbot.handler.HandlerRegistry;
@@ -10,8 +8,6 @@ import fi.derpnet.derpbot.handler.RawMessageHandler;
 import fi.derpnet.derpbot.handler.SimpleMessageHandler;
 import fi.derpnet.derpbot.adapter.SimpleMultiLineMessageAdapter;
 import fi.derpnet.derpbot.httpapi.HttpApiDaemon;
-import fi.derpnet.derpbot.handler.LoudMessageHandler;
-import fi.derpnet.derpbot.handler.LoudMultiLineMessageHandler;
 import fi.derpnet.derpbot.handler.SimpleMultiLineMessageHandler;
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.Set;
@@ -37,9 +34,10 @@ public class MainController {
     private List<RawMessageHandler> rawMessageHandlers;
     private Map<String, String> config;
     private List<IrcConnector> ircConnectors;
-    private HttpApiDaemon httpApi = new HttpApiDaemon();
+    private HttpApiDaemon httpApi;
 
     public void start() {
+        httpApi = new HttpApiDaemon();
         loadConfiguration();
         loadHandlers();
         connectToServers();
@@ -55,7 +53,7 @@ public class MainController {
         }
 
         LOG.info("Disconnecting from IRC servers");
-        ircConnectors.forEach(c -> c.disconnect());
+        ircConnectors.forEach(IrcConnector::disconnect);
     }
 
     private void loadConfiguration() {
@@ -92,40 +90,20 @@ public class MainController {
     private void loadHandlers() {
         LOG.info("Loading handlers");
         rawMessageHandlers = new LinkedList<>();
-        HandlerRegistry.handlers.stream().forEach((Class c) -> {
+        HandlerRegistry.handlers.forEach(c -> {
             LOG.info("Registering message handler " + c.getSimpleName());
-            if (RawMessageHandler.class.isAssignableFrom(c)) {
-                try {
+            try {
+                if (RawMessageHandler.class.isAssignableFrom(c)) {
                     rawMessageHandlers.add((RawMessageHandler) c.newInstance());
-                } catch (InstantiationException | IllegalAccessException ex) {
-                    LOG.error("Error initializing handler " + c.getName(), ex);
-                }
-            } else if (LoudMultiLineMessageHandler.class.isAssignableFrom(c)) {
-                try {
-                    rawMessageHandlers.add(new LoudMultiLineMessageAdapter((LoudMultiLineMessageHandler) c.newInstance()));
-                } catch (InstantiationException | IllegalAccessException ex) {
-                    LOG.error("Error initializing handler " + c.getName(), ex);
-                }
-            } else if (LoudMessageHandler.class.isAssignableFrom(c)) {
-                try {
-                    rawMessageHandlers.add(new LoudMessageAdapter((LoudMessageHandler) c.newInstance()));
-                } catch (InstantiationException | IllegalAccessException ex) {
-                    LOG.error("Error initializing handler " + c.getName(), ex);
-                }
-            } else if (SimpleMultiLineMessageHandler.class.isAssignableFrom(c)) {
-                try {
+                } else if (SimpleMultiLineMessageHandler.class.isAssignableFrom(c)) {
                     rawMessageHandlers.add(new SimpleMultiLineMessageAdapter((SimpleMultiLineMessageHandler) c.newInstance()));
-                } catch (InstantiationException | IllegalAccessException ex) {
-                    LOG.error("Error initializing handler " + c.getName(), ex);
-                }
-            } else if (SimpleMessageHandler.class.isAssignableFrom(c)) {
-                try {
+                } else if (SimpleMessageHandler.class.isAssignableFrom(c)) {
                     rawMessageHandlers.add(new SimpleMessageAdapter((SimpleMessageHandler) c.newInstance()));
-                } catch (InstantiationException | IllegalAccessException ex) {
-                    LOG.error("Error initializing handler " + c.getName(), ex);
+                } else {
+                    LOG.error("Handler registry contains class " + c.getName() + " which does not implement a supported interface");
                 }
-            } else {
-                LOG.error("Handler registry contains class " + c.getName() + " which does not implement a supported interface");
+            } catch (InstantiationException | IllegalAccessException ex) {
+                LOG.error("Error initializing handler " + c.getName(), ex);
             }
         });
 
@@ -207,7 +185,7 @@ public class MainController {
                 return null;
             }
         });
-        return handledStream.filter(l -> l != null).flatMap(l -> l.stream()).collect(Collectors.toList());
+        return handledStream.filter(Objects::nonNull).flatMap(List::stream).collect(Collectors.toList());
     }
 
     public List<RawMessageHandler> getRawMessageHandlers() {
