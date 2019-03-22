@@ -108,8 +108,8 @@ public class IrcConnector {
 
         UncaughtExceptionHandler exceptionHandler = (thread, throwable) -> LOG.error(thread.getClass().getSimpleName() + " in network " + networkName + " exited with uncaught exception", throwable);
 
-        connectionWatcher = new ConnectionWatcher(senderThread, this::handleConnectionLoss);
         senderThread = new SenderThread(writer, ratelimit);
+        connectionWatcher = new ConnectionWatcher(senderThread, this::handleConnectionLoss);
         receiverThread = new ReceiverThread(reader, senderThread, connectionWatcher::gotMessage, this::handleConnectionLoss, msg -> controller.handleIncoming(this, msg));
 
         senderThread.setUncaughtExceptionHandler(exceptionHandler);
