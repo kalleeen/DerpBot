@@ -14,6 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.log4j.Logger;
@@ -56,7 +57,9 @@ public class LinkTitle implements SimpleMultiLineMessageHandler {
                 if (isBadAddress(InetAddress.getByName(url.getHost()))) {
                     continue;
                 }
-                try (BufferedReader in = new BufferedReader(new InputStreamReader(new BoundedInputStream(connection.getInputStream(), 1024 * 1024)))) {
+                try (BufferedReader in = new BufferedReader(new InputStreamReader(new BoundedInputStream(
+                        "gzip".equals(connection.getContentEncoding()) ? new GZIPInputStream(connection.getInputStream()) : connection.getInputStream()
+                        , 1024 * 1024)))) {
                     String inputLine;
                     StringBuilder contentBuilder = new StringBuilder();
                     try {
