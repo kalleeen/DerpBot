@@ -9,6 +9,9 @@ http.api.secret=
 # Bing maps. Leave empty to disable maps features
 bing.maps.apikey=
 
+# User-Agent to use for link title -functionality. If empty, default Java User-Agent will be used
+link.title.user-agent=
+
 # Networks
 #            Host:                network.<name of network>.host=<prefix with ssl: for encrypted connection><hostname or ip>:<port>
 #            Channels:            network.<name of network>.channels=<channels separated by comma>

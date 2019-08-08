@@ -17,14 +17,17 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 public class LinkTitle implements SimpleMultiLineMessageHandler {
 
     private static final Logger LOG = Logger.getLogger(LinkTitle.class);
+    private String customUserAgent;
 
     @Override
     public void init(MainController controller) {
+        customUserAgent = controller.getConfig().get("link.title.user-agent");
     }
 
     @Override
@@ -56,6 +59,9 @@ public class LinkTitle implements SimpleMultiLineMessageHandler {
                 connection.setReadTimeout(5000);
                 if (isBadAddress(InetAddress.getByName(url.getHost()))) {
                     continue;
+                }
+                if (StringUtils.isNotBlank(customUserAgent)){
+                    connection.setRequestProperty("User-Agent", customUserAgent);
                 }
                 try (BufferedReader in = new BufferedReader(new InputStreamReader(new BoundedInputStream(
                         "gzip".equals(connection.getContentEncoding()) ? new GZIPInputStream(connection.getInputStream()) : connection.getInputStream()
