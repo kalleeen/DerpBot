@@ -24,5 +24,6 @@ public class HandlerRegistry {
         handlers.add(Maps.class);
         handlers.add(Sed.class);
         handlers.add(Stats.class);
+        handlers.add(PassPredictor.class);
     }
 }
