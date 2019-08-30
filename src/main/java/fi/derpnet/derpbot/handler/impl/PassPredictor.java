@@ -23,7 +23,7 @@ public class PassPredictor implements SimpleMultiLineMessageHandler {
 
     private static final Logger LOG = Logger.getLogger(PassPredictor.class);
 
-    private static final String API_URL = "https://passpredictor.24-7.fi/";
+    private static final String API_URL = "https://passpredictor.24-7.fi/next";
 
     private static final Function<Long, String> DATE_FORMAT = time -> new SimpleDateFormat("HH:mm").format(new Date(time * 1000));
     private static final Function<Long, String> HZ_FORMAT = hz -> hz > 1_000_000 ? hz / 1_000_000d + "Mhz" : hz / 1_000d + "kHz";
