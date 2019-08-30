@@ -29,11 +29,12 @@ public class PassPredictor implements SimpleMultiLineMessageHandler {
     private static final Function<Long, String> HZ_FORMAT = hz -> hz > 1_000_000 ? hz / 1_000_000d + "Mhz" : hz / 1_000d + "kHz";
     private static final Function<Long, String> DURATION_FORMAT = seconds -> seconds < 60 ? seconds + " secs" : seconds / 60 + " mins " + seconds % 60 + " secs";
     private static final Function<Long, String> REMAINING_FORMAT = seconds -> seconds < 3600 ? seconds / 60 + " mins" : seconds / 3600 + " hours " + seconds % 3600 / 60 + " mins";
-    private static final Function<Pass, String> FORMATTER = pass -> String.format("%s at %s (in %s) pass length %s with max elevation %s (freq: %s bw: %s)",
+    private static final Function<Pass, String> FORMATTER = pass -> String.format("%s at %s (in %s) pass length %s (ends at %s) with max elevation %s (freq: %s bw: %s)",
             IrcFormatter.bold(pass.getSatellite()),
             IrcFormatter.bold(DATE_FORMAT.apply(pass.getBegin())),
             IrcFormatter.bold(REMAINING_FORMAT.apply(pass.getBegin() - System.currentTimeMillis() / 1000)),
             IrcFormatter.bold(DURATION_FORMAT.apply(pass.getEnd() - pass.getBegin())),
+            IrcFormatter.bold(DATE_FORMAT.apply(pass.getEnd())),
             IrcFormatter.bold(pass.getMaxElev() + "º"),
             IrcFormatter.bold(HZ_FORMAT.apply(pass.getFrequency())),
             IrcFormatter.bold(HZ_FORMAT.apply(pass.getBandwidth())));
