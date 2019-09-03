@@ -29,6 +29,7 @@ public class PassPredictor implements SimpleMultiLineMessageHandler {
     private static final String API_BASE_URL = "https://passpredictor.24-7.fi";
     private static final String API_URL_NEXT = API_BASE_URL + "/next";
     private static final String API_URL_24H = API_BASE_URL + "/24h";
+    private static final String API_URL_PAST_24H = API_BASE_URL + "/-24h";
 
     private static final long ALL_COOLDOWN_MS = 600_000;
 
@@ -59,7 +60,7 @@ public class PassPredictor implements SimpleMultiLineMessageHandler {
 
     @Override
     public String getHelp() {
-        return "Show next satellite passes. Valid parameters are 'next', 'highest', 'all' or satellite name";
+        return "Show next satellite passes. Valid parameters are 'next', 'past', 'highest', 'all' or satellite name";
     }
 
     @Override
@@ -90,6 +91,8 @@ public class PassPredictor implements SimpleMultiLineMessageHandler {
         switch (param) {
             case "next":
                 return getPassesFromApi(API_URL_NEXT);
+            case "past":
+                return getPassesFromApi(API_URL_PAST_24H);
             case "all":
                 if (System.currentTimeMillis() > lastAll + ALL_COOLDOWN_MS) {
                     lastAll = System.currentTimeMillis();
