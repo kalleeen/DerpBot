@@ -25,5 +25,6 @@ public class HandlerRegistry {
         handlers.add(Sed.class);
         handlers.add(Stats.class);
         handlers.add(PassPredictor.class);
+        handlers.add(Posti.class);
     }
 }
