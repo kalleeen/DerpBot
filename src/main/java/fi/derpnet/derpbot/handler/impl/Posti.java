@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -61,7 +62,7 @@ public class Posti implements SimpleMessageHandler {
         String trackingCode = CommandUtils.getFirstParameter(message);
         String identifier = "";
         if (parameters.size() > 1){
-            identifier = message.split(trackingCode)[1].trim() + ": ";
+            identifier = parameters.stream().skip(1).collect(Collectors.joining(" ", "", ": "));
         }
         Shipments response = getStatusFromPosti(trackingCode);
         
