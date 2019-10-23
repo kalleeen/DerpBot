@@ -44,7 +44,8 @@ public class Posti implements SimpleMessageHandler {
 
     @Override
     public String getHelp() {
-        return "Track a package with a specified tracking code";
+        return "Track a package with a specified tracking code. "
+                + "Optionally give an identifier as second parameter to identify messages easier.";
     }
 
     @Override
@@ -53,7 +54,15 @@ public class Posti implements SimpleMessageHandler {
             return null;
         }
         
+        List<String> parameters = CommandUtils.getParameters(message);
+        if (parameters == null || parameters.size() < 1){
+            return "Usage !posti trackingcode";
+        }
         String trackingCode = CommandUtils.getFirstParameter(message);
+        String identifier = "";
+        if (parameters.size() > 1){
+            identifier = message.split(trackingCode)[1].trim() + ": ";
+        }
         Shipments response = getStatusFromPosti(trackingCode);
         
         if (response == null) {
@@ -71,14 +80,14 @@ public class Posti implements SimpleMessageHandler {
         List<Event> events = shipment.getEvents();
         
         if (phase != null && phase.equals("DELIVERED")){
-            return "Shipment " + shipment.getTrackingCode() + " already delivered at "
+            return identifier + "Shipment " + shipment.getTrackingCode() + " already delivered at "
                     + formatDate(shipment.getEstimatedDeliveryTime()) + ".";
         }
         
-        new PollerThread(ircConnector, trackingCode, events.size(), RawMessageUtils.getRecipientForResponse(sender, recipient)).start();
+        new PollerThread(ircConnector, trackingCode, events.size(), RawMessageUtils.getRecipientForResponse(sender, recipient), identifier).start();
         
         if (events.isEmpty()){
-            String output =  "Shipment " + shipment.getTrackingCode(); 
+            String output = identifier + "Shipment " + shipment.getTrackingCode(); 
             if (shipment.getDestinationPostcode() != null) {
                 output += " with destination " + shipment.getDestinationPostcode() + " " + shipment.getDestinationCity() + " ";
             }
@@ -86,9 +95,9 @@ public class Posti implements SimpleMessageHandler {
             return output;
         }
         else {
-            String output =  "Shipment " + shipment.getTrackingCode() + " ";
+            String output = identifier + "Shipment " + shipment.getTrackingCode() + " ";
             if (shipment.getDestinationPostcode() != null) {
-                output += " with destination " + shipment.getDestinationPostcode() + " " + shipment.getDestinationCity() + " ";
+                output += "with destination " + shipment.getDestinationPostcode() + " " + shipment.getDestinationCity() + " ";
             }
             output += "registered for tracking.";
             if (shipment.getEstimatedDeliveryTime() != null) {
@@ -135,12 +144,14 @@ public class Posti implements SimpleMessageHandler {
         private int eventsNumber;
         private final String recipient;
         private String returnMsg;
+        private String identifier;
 
-        public PollerThread(IrcConnector ircConnector, String trackingCode, int eventsNumber, String recipient) {
+        public PollerThread(IrcConnector ircConnector, String trackingCode, int eventsNumber, String recipient, String identifier) {
             this.ircConnector = ircConnector;
             this.trackingCode = trackingCode;
             this.recipient = recipient;
             this.eventsNumber = eventsNumber;
+            this.identifier = identifier;
         }
 
         @Override
@@ -168,13 +179,13 @@ public class Posti implements SimpleMessageHandler {
                     
                     if (events.size() != eventsNumber){
                         eventsNumber = events.size();
-                        returnMsg = "New tracking event for shipment " + shipment.getTrackingCode();
+                        returnMsg = identifier + "New tracking event for shipment " + shipment.getTrackingCode();
                         if (shipment.getDestinationPostcode() != null) {
                             returnMsg += " with destination " + shipment.getDestinationPostcode() + " " + shipment.getDestinationCity();
                         }
                         returnMsg += ": ";
                         Event lastEvent = events.get(0);
-                        returnMsg += " Last event at " + formatDate(lastEvent.getTimestamp()) + ": " + lastEvent.getDescription().getEn() + " Location: " + lastEvent.getLocationName();
+                        returnMsg += "Last event at " + formatDate(lastEvent.getTimestamp()) + ": " + lastEvent.getDescription().getEn() + " Location: " + lastEvent.getLocationName();
                         if (shipment.getEstimatedDeliveryTime() != null) {
                             returnMsg += " Estimated delivery time " + formatDate(shipment.getEstimatedDeliveryTime()) + ".";
                         }
@@ -182,7 +193,7 @@ public class Posti implements SimpleMessageHandler {
                     }
                     
                     if (phase.equals("DELIVERED")){
-                        returnMsg = "Shipment " + shipment.getTrackingCode() + " marked as delivered, ending tracking.";
+                        returnMsg = identifier + "Shipment " + shipment.getTrackingCode() + " marked as delivered, ending tracking.";
                         ircConnector.send(new RawMessage(null, "PRIVMSG", recipient, ':' + returnMsg));
                         break;
                     }
