@@ -4,11 +4,11 @@ import com.google.gson.Gson;
 import fi.derpnet.derpbot.bean.pvm.Liputuspaiva;
 import fi.derpnet.derpbot.bean.pvm.Nimipaiva;
 import fi.derpnet.derpbot.bean.pvm.Pyha;
-import fi.derpnet.derpbot.connector.IrcConnector;
-import fi.derpnet.derpbot.constants.AsciiFormatting;
+import fi.derpnet.derpbot.connector.Connector;
+import fi.derpnet.derpbot.constants.HtmlFormatting;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.handler.SimpleMessageHandler;
-import fi.derpnet.derpbot.util.IrcFormatter;
+import fi.derpnet.derpbot.util.IrcSafeHtmlFormatter;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -61,31 +61,31 @@ public class Pvm implements SimpleMessageHandler {
     }
 
     @Override
-    public String handle(String sender, String recipient, String message, IrcConnector ircConnector) {
+    public String handle(String sender, String recipient, String message, Connector connector) {
         if (!message.startsWith("!pvm")) {
             return null;
         }
-        StringBuilder sb = new StringBuilder(IrcFormatter.bold(printDf.format(new Date())));
+        StringBuilder sb = new StringBuilder(IrcSafeHtmlFormatter.bold(printDf.format(new Date())));
 
         Pyha pyha = getPyha();
         if (pyha != null) {
-            sb.append(", Pyhä: ").append(IrcFormatter.bold(pyha.getName()));
+            sb.append(", Pyhä: ").append(IrcSafeHtmlFormatter.bold(pyha.getName()));
             if (pyha.getAge() != null) {
-                sb.append(IrcFormatter.colorize(" (" + pyha.getAge() + " vuotta)", AsciiFormatting.GREY));
+                sb.append(IrcSafeHtmlFormatter.colorize(" (" + pyha.getAge() + " vuotta)", HtmlFormatting.GREY));
             }
         }
 
         Liputuspaiva liputuspaiva = getLiputuspaiva();
         if (liputuspaiva != null) {
-            sb.append(", Liputuspäivä: ").append(IrcFormatter.bold(liputuspaiva.getName()));
+            sb.append(", Liputuspäivä: ").append(IrcSafeHtmlFormatter.bold(liputuspaiva.getName()));
             if (liputuspaiva.getAge() != null) {
-                sb.append(IrcFormatter.colorize(" (" + liputuspaiva.getAge() + " vuotta)", AsciiFormatting.GREY));
+                sb.append(IrcSafeHtmlFormatter.colorize(" (" + liputuspaiva.getAge() + " vuotta)", HtmlFormatting.GREY));
             }
         }
 
         Nimipaiva nimipaiva = getNimipaiva();
         if (nimipaiva != null) {
-            sb.append(", Nimipäivää viettää ").append(IrcFormatter.bold(nimipaiva.getName())).append('.');
+            sb.append(", Nimipäivää viettää ").append(IrcSafeHtmlFormatter.bold(nimipaiva.getName())).append('.');
         }
 
         return sb.toString();

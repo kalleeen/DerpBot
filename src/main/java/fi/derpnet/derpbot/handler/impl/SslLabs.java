@@ -3,7 +3,9 @@ package fi.derpnet.derpbot.handler.impl;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import fi.derpnet.derpbot.bean.MatrixMessage;
 import fi.derpnet.derpbot.bean.RawMessage;
+import fi.derpnet.derpbot.connector.Connector;
 import fi.derpnet.derpbot.connector.IrcConnector;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.handler.SimpleMessageHandler;
@@ -35,7 +37,7 @@ public class SslLabs implements SimpleMessageHandler {
     }
 
     @Override
-    public String handle(String sender, String recipient, String message, IrcConnector ircConnector) {
+    public String handle(String sender, String recipient, String message, Connector connector) {
         if (!message.startsWith("!ssllabs ")) {
             return null;
         }
@@ -61,7 +63,13 @@ public class SslLabs implements SimpleMessageHandler {
                     case "ERROR":
                         return "SSL Labs analysis for " + host + ": " + elem.getAsJsonObject().get("statusMessage").getAsString();
                     default:
-                        new PollerThread(ircConnector, host, RawMessageUtils.getRecipientForResponse(sender, recipient)).start();
+                        if (connector instanceof IrcConnector) {
+                            new PollerThread(connector, host, RawMessageUtils.getRecipientForResponse(sender, recipient), false).start();
+                        }
+                        else {
+                            new PollerThread(connector, host, recipient, true).start();
+                        }
+                        
                         return "Analysis in progress for " + host;
                 }
             }
@@ -72,16 +80,18 @@ public class SslLabs implements SimpleMessageHandler {
 
     private class PollerThread extends Thread {
 
-        private final IrcConnector ircConnector;
+        private final Connector connector;
         private final String host;
         private final long start;
         private final String recipient;
         private String returnMsg;
+        private boolean isMatrix;
 
-        public PollerThread(IrcConnector ircConnector, String host, String recipient) {
-            this.ircConnector = ircConnector;
+        public PollerThread(Connector connector, String host, String recipient, boolean isMatrix) {
+            this.connector = connector;
             this.host = host;
             this.recipient = recipient;
+            this.isMatrix = isMatrix;
             start = System.currentTimeMillis();
         }
 
@@ -122,7 +132,12 @@ public class SslLabs implements SimpleMessageHandler {
                     break;
                 }
             }
-            ircConnector.send(new RawMessage(null, "PRIVMSG", recipient, ':' + returnMsg));
+            if (isMatrix) {
+                connector.send(new MatrixMessage(returnMsg, recipient));
+            }
+            else {
+                connector.send(new RawMessage(null, "PRIVMSG", recipient, ':' + returnMsg));
+            }
         }
     }
 }

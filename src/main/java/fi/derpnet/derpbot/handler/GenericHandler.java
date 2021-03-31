@@ -1,6 +1,10 @@
 package fi.derpnet.derpbot.handler;
 
+import fi.derpnet.derpbot.bean.Message;
+import fi.derpnet.derpbot.bean.RawMessage;
+import fi.derpnet.derpbot.connector.Connector;
 import fi.derpnet.derpbot.controller.MainController;
+import java.util.List;
 
 /**
  * A generic handler for things.
@@ -35,7 +39,7 @@ public interface GenericHandler {
      *
      * @return The RawMessageHandler
      */
-    RawMessageHandler getRawMessageHandler();
+    MessageHandler getRawMessageHandler();
 
     /**
      * Gets the "loudness" of this handler, a "loud" handler is considered one

@@ -9,7 +9,7 @@ import com.maxmind.geoip2.record.Location;
 import com.maxmind.geoip2.record.Postal;
 import com.maxmind.geoip2.record.RepresentedCountry;
 import com.maxmind.geoip2.record.Traits;
-import fi.derpnet.derpbot.connector.IrcConnector;
+import fi.derpnet.derpbot.connector.Connector;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.handler.SimpleMessageHandler;
 import fi.derpnet.derpbot.util.CommandUtils;
@@ -40,7 +40,7 @@ public class GeoIp implements SimpleMessageHandler {
     }
 
     @Override
-    public String handle(String sender, String recipient, String message, IrcConnector ircConnector) {
+    public String handle(String sender, String recipient, String message, Connector connector) {
         if (!message.startsWith("!geoip ")) {
             return null;
         }

@@ -1,10 +1,11 @@
 package fi.derpnet.derpbot.handler.impl;
 
+import fi.derpnet.derpbot.connector.Connector;
 import fi.derpnet.derpbot.connector.IrcConnector;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.handler.SimpleMessageHandler;
 import fi.derpnet.derpbot.util.CommandUtils;
-import fi.derpnet.derpbot.util.IrcFormatter;
+import fi.derpnet.derpbot.util.IrcSafeHtmlFormatter;
 import fi.derpnet.derpbot.util.IrcUtils;
 import fi.derpnet.derpbot.util.TimeUtils;
 import java.text.SimpleDateFormat;
@@ -34,7 +35,14 @@ public class Stats implements SimpleMessageHandler {
     }
 
     @Override
-    public String handle(String sender, String recipient, String message, IrcConnector ircConnector) {
+    public String handle(String sender, String recipient, String message, Connector connector) {
+        IrcConnector ircConnector;
+        if (connector instanceof IrcConnector) {
+            ircConnector = (IrcConnector)connector;
+        }
+        else {
+            return null;
+        }
         Map<String, StatsData> statsMap = allStats.get(ircConnector.networkName);
         if (statsMap == null) {
             synchronized (allStats) {
@@ -93,10 +101,10 @@ public class Stats implements SimpleMessageHandler {
             String wordsPerDay = String.format("%.2f", ((double) words) / msSinceStart * TimeUtils.MS_IN_DAY);
             String charsPerDay = String.format("%.2f", ((double) characters) / msSinceStart * TimeUtils.MS_IN_DAY);
             return nick + " stats since " + sdf.format(new Date(startup)) + ": "
-                    + "messages: " + IrcFormatter.bold(String.valueOf(messages)) + " (" + msgPerDay + " per day) "
-                    + "words: " + IrcFormatter.bold(String.valueOf(words)) + " (" + wordsPerDay + " per day) "
-                    + "characters: " + IrcFormatter.bold(String.valueOf(characters)) + " (" + charsPerDay + " per day) "
-                    + "last seen: " + IrcFormatter.bold(TimeUtils.msToTime(System.currentTimeMillis() - lastSeen)) + " ago (" + sdf.format(new Date(lastSeen)) + ')';
+                    + "messages: " + IrcSafeHtmlFormatter.bold(String.valueOf(messages)) + " (" + msgPerDay + " per day) "
+                    + "words: " + IrcSafeHtmlFormatter.bold(String.valueOf(words)) + " (" + wordsPerDay + " per day) "
+                    + "characters: " + IrcSafeHtmlFormatter.bold(String.valueOf(characters)) + " (" + charsPerDay + " per day) "
+                    + "last seen: " + IrcSafeHtmlFormatter.bold(TimeUtils.msToTime(System.currentTimeMillis() - lastSeen)) + " ago (" + sdf.format(new Date(lastSeen)) + ')';
         }
     }
 }

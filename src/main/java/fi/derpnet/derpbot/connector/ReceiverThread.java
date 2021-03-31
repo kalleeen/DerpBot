@@ -1,5 +1,6 @@
 package fi.derpnet.derpbot.connector;
 
+import fi.derpnet.derpbot.bean.Message;
 import fi.derpnet.derpbot.bean.RawMessage;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,9 +16,9 @@ class ReceiverThread extends Thread {
     private final SenderThread senderThread;
     private final Runnable messageCallback;
     private final Runnable reconnectCall;
-    private final Function<RawMessage, List<RawMessage>> messageFunction;
+    private final Function<Message, List<Message>> messageFunction;
 
-    public ReceiverThread(BufferedReader reader, SenderThread senderThread, Runnable messageCallback, Runnable reconnectCall, Function<RawMessage, List<RawMessage>> messageFunction) {
+    public ReceiverThread(BufferedReader reader, SenderThread senderThread, Runnable messageCallback, Runnable reconnectCall, Function<Message, List<Message>> messageFunction) {
         this.reader = reader;
         this.senderThread = senderThread;
         this.messageCallback = messageCallback;
@@ -36,7 +37,7 @@ class ReceiverThread extends Thread {
                 if (msg.command.equals("PING")) {
                     senderThread.pong(line.substring(6));
                 }
-                List<RawMessage> responses = messageFunction.apply(msg);
+                List<Message> responses = messageFunction.apply(msg);
                 if (responses != null) {
                     senderThread.send(responses);
                 }

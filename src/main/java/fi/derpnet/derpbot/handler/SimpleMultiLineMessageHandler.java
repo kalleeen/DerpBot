@@ -1,7 +1,7 @@
 package fi.derpnet.derpbot.handler;
 
 import fi.derpnet.derpbot.adapter.SimpleMultiLineMessageAdapter;
-import fi.derpnet.derpbot.connector.IrcConnector;
+import fi.derpnet.derpbot.connector.Connector;
 import java.util.List;
 
 /**
@@ -15,15 +15,15 @@ public interface SimpleMultiLineMessageHandler extends GenericHandler {
      * @param sender the sender of this message in format nick!user@host
      * @param recipient the recipient (channel or this bot itself)
      * @param message the message received
-     * @param ircConnector the IrcConnector requesting this handling. Useful for
+     * @param connector the Connector requesting this handling. Useful for
      * retrieving the bots nickname or other network-specific info
      * @return the responses to be sent to the origin (channel or sender), or
      * null if this handler does not handle this message
      */
-    List<String> handle(String sender, String recipient, String message, IrcConnector ircConnector);
+    List<String> handle(String sender, String recipient, String message, Connector connector);
 
     @Override
-    default RawMessageHandler getRawMessageHandler() {
+    default MessageHandler getRawMessageHandler() {
         return new SimpleMultiLineMessageAdapter(this);
     }
 }

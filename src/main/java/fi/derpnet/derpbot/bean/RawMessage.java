@@ -9,7 +9,7 @@ import java.util.List;
  * Describes a raw message from the server. See section 2.3 Messages from
  * https://tools.ietf.org/html/rfc2812
  */
-public class RawMessage {
+public class RawMessage implements Message {
 
     /**
      * The prefix is used by servers to indicate the true origin of the message.

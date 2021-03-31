@@ -2,7 +2,7 @@ package fi.derpnet.derpbot.handler.impl;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import fi.derpnet.derpbot.connector.IrcConnector;
+import fi.derpnet.derpbot.connector.Connector;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.handler.SimpleMessageHandler;
 import fi.derpnet.derpbot.util.CharsetUtils;
@@ -62,10 +62,11 @@ public class MegaHal implements SimpleMessageHandler {
     }
 
     @Override
-    public String handle(String sender, String recipient, String message, IrcConnector ircConnector) {
+    public String handle(String sender, String recipient, String message, Connector connector) {
         if (message.startsWith("!megahal")) {
             return hal.getStats();
         }
+        
         if (!message.startsWith(nick)) {
             return null;
         }

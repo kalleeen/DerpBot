@@ -4,9 +4,12 @@ import fi.derpnet.derpbot.bean.RawMessage;
 import fi.derpnet.derpbot.connector.IrcConnector;
 import fi.derpnet.derpbot.handler.HandlerRegistry;
 import fi.derpnet.derpbot.adapter.SimpleMessageAdapter;
-import fi.derpnet.derpbot.handler.RawMessageHandler;
 import fi.derpnet.derpbot.handler.SimpleMessageHandler;
 import fi.derpnet.derpbot.adapter.SimpleMultiLineMessageAdapter;
+import fi.derpnet.derpbot.bean.Message;
+import fi.derpnet.derpbot.connector.Connector;
+import fi.derpnet.derpbot.connector.MatrixConnector;
+import fi.derpnet.derpbot.handler.GenericHandler;
 import fi.derpnet.derpbot.httpapi.HttpApiDaemon;
 import fi.derpnet.derpbot.handler.SimpleMultiLineMessageHandler;
 import java.io.File;
@@ -27,13 +30,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.log4j.Logger;
+import fi.derpnet.derpbot.handler.MessageHandler;
 
 public class MainController {
 
     private static final Logger LOG = Logger.getLogger(MainController.class);
-    private List<RawMessageHandler> rawMessageHandlers;
+    private List<MessageHandler> messageHandlers;
     private Map<String, String> config;
-    private List<IrcConnector> ircConnectors;
+    private List<Connector> connectors;
     private HttpApiDaemon httpApi;
 
     public void start() {
@@ -53,7 +57,7 @@ public class MainController {
         }
 
         LOG.info("Disconnecting from IRC servers");
-        ircConnectors.forEach(IrcConnector::disconnect);
+        connectors.forEach(Connector::disconnect);
     }
 
     private void loadConfiguration() {
@@ -89,39 +93,30 @@ public class MainController {
 
     private void loadHandlers() {
         LOG.info("Loading handlers");
-        rawMessageHandlers = new LinkedList<>();
+        messageHandlers = new LinkedList<>();
         HandlerRegistry.handlers.forEach(c -> {
             LOG.info("Registering message handler " + c.getSimpleName());
             try {
-                rawMessageHandlers.add(c.newInstance().getRawMessageHandler());
+                messageHandlers.add(c.newInstance().getRawMessageHandler());
             } catch (InstantiationException | IllegalAccessException ex) {
                 LOG.error("Error initializing handler " + c.getName(), ex);
             }
         });
 
         LOG.info("Initializing handlers");
-        rawMessageHandlers.forEach(h -> h.init(this));
+        messageHandlers.forEach(h -> h.init(this));
     }
 
     private void connectToServers() {
         LOG.info("Connecting to IRC servers");
-        ircConnectors = new LinkedList<>();
+        connectors = new LinkedList<>();
         Set<Entry<String, String>> networkEntries = config.entrySet().stream().filter(e -> e.getKey().startsWith("network.") && e.getKey().endsWith(".host")).collect(Collectors.toSet());
         for (Entry<String, String> entry : networkEntries) {
             String networkName = entry.getKey().substring(entry.getKey().indexOf('.') + 1, entry.getKey().length() - 5); // +1 because we don't want the dot, and strip the .host from the end
             String[] entrySplit = entry.getValue().split(":");
             String hostname;
-            int port;
+            int port = 0;
             boolean ssl;
-            if (entrySplit.length == 3 && entrySplit[0].equalsIgnoreCase("ssl")) {
-                hostname = entrySplit[1];
-                port = Integer.parseInt(entrySplit[2]);
-                ssl = true;
-            } else {
-                hostname = entrySplit[0];
-                port = Integer.parseInt(entrySplit[1]);
-                ssl = false;
-            }
             String nick = config.get("network." + networkName + ".nick");
             if (nick == null) {
                 nick = config.get("default.nick");
@@ -136,21 +131,44 @@ public class MainController {
                     user = "DerpBot";
                 }
             }
-            String realname = config.get("network." + networkName + ".realname");
-            if (realname == null) {
-                realname = config.get("default.realname");
-                if (realname == null) {
-                    realname = "DerpBot";
-                }
-            }
             int ratelimit;
             try {
                 ratelimit = Integer.parseInt(config.get("network." + networkName + ".ratelimit"));
             } catch (NullPointerException | NumberFormatException ex) {
                 ratelimit = 2500;
             }
-            IrcConnector connector = new IrcConnector(networkName, hostname, port, ssl, user, realname, nick, ratelimit, this);
-            ircConnectors.add(connector);
+            Connector connector;
+            String protocol = config.get("network." + networkName + ".protocol");
+            switch (protocol) {
+                case "matrix":
+                    hostname = entrySplit[0];
+                    String login = config.get("network." + networkName + ".login");
+                    String password = config.get("network." + networkName + ".password");
+                    connector = new MatrixConnector(hostname, login, password, user, this);
+                    break;
+                
+                default:
+                case "irc":
+                    if (entrySplit.length == 3 && entrySplit[0].equalsIgnoreCase("ssl")) {
+                        hostname = entrySplit[1];
+                        port = Integer.parseInt(entrySplit[2]);
+                        ssl = true;
+                    } else {
+                        hostname = entrySplit[0];
+                        port = Integer.parseInt(entrySplit[1]);
+                        ssl = false;
+                    }
+                    String realname = config.get("network." + networkName + ".realname");
+                    if (realname == null) {
+                        realname = config.get("default.realname");
+                        if (realname == null) {
+                            realname = "DerpBot";
+                        }
+                    }
+                    
+                    connector = new IrcConnector(networkName, hostname, port, ssl, user, realname, nick, ratelimit, this);
+            }
+            connectors.add(connector);
             try {
                 connector.connect();
             } catch (IOException ex) {
@@ -168,8 +186,8 @@ public class MainController {
         }
     }
 
-    public List<RawMessage> handleIncoming(IrcConnector origin, RawMessage message) {
-        Stream<List<RawMessage>> handledStream = rawMessageHandlers.stream().map((h) -> {
+    public List<Message> handleIncoming(Connector origin, Message message) {
+        Stream<List<Message>> handledStream = messageHandlers.stream().map((h) -> {
             try {
                 return h.handle(message, origin);
             } catch (Exception ex) {
@@ -180,15 +198,15 @@ public class MainController {
         return handledStream.filter(Objects::nonNull).flatMap(List::stream).collect(Collectors.toList());
     }
 
-    public List<RawMessageHandler> getRawMessageHandlers() {
-        return rawMessageHandlers;
+    public List<MessageHandler> getRawMessageHandlers() {
+        return messageHandlers;
     }
 
     public Map<String, String> getConfig() {
         return config;
     }
 
-    public List<IrcConnector> getIrcConnectors() {
-        return ircConnectors;
+    public List<Connector> getConnectors() {
+        return connectors;
     }
 }

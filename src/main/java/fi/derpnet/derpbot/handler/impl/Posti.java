@@ -3,10 +3,13 @@ package fi.derpnet.derpbot.handler.impl;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import fi.derpnet.derpbot.bean.MatrixMessage;
+import fi.derpnet.derpbot.bean.Message;
 import fi.derpnet.derpbot.bean.RawMessage;
 import fi.derpnet.derpbot.bean.posti.Event;
 import fi.derpnet.derpbot.bean.posti.Shipment;
 import fi.derpnet.derpbot.bean.posti.Shipments;
+import fi.derpnet.derpbot.connector.Connector;
 import fi.derpnet.derpbot.connector.IrcConnector;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.handler.SimpleMessageHandler;
@@ -50,7 +53,7 @@ public class Posti implements SimpleMessageHandler {
     }
 
     @Override
-    public String handle(String sender, String recipient, String message, IrcConnector ircConnector) {
+    public String handle(String sender, String recipient, String message, Connector connector) {
         if (!message.startsWith("!posti ")) {
             return null;
         }
@@ -85,7 +88,12 @@ public class Posti implements SimpleMessageHandler {
                     + formatDate(shipment.getEstimatedDeliveryTime()) + ".";
         }
         
-        new PollerThread(ircConnector, trackingCode, events.size(), RawMessageUtils.getRecipientForResponse(sender, recipient), identifier).start();
+        if (connector instanceof IrcConnector) {
+            new PollerThread(connector, trackingCode, events.size(), RawMessageUtils.getRecipientForResponse(sender, recipient), identifier, false).start();
+        }
+        else {
+            new PollerThread(connector, trackingCode, events.size(), recipient, identifier, true).start();
+        }
         
         if (events.isEmpty()){
             String output = identifier + "Shipment " + shipment.getTrackingCode(); 
@@ -140,19 +148,29 @@ public class Posti implements SimpleMessageHandler {
     
     private class PollerThread extends Thread {
 
-        private final IrcConnector ircConnector;
+        private final Connector connector;
         private final String trackingCode;
         private int eventsNumber;
+        // For irc only
         private final String recipient;
         private String returnMsg;
         private String identifier;
+        private boolean isMatrix;
 
-        public PollerThread(IrcConnector ircConnector, String trackingCode, int eventsNumber, String recipient, String identifier) {
-            this.ircConnector = ircConnector;
+        public PollerThread(Connector connector, String trackingCode, int eventsNumber, String recipient, String identifier, boolean isMatrix) {
+            this.connector = connector;
             this.trackingCode = trackingCode;
             this.recipient = recipient;
             this.eventsNumber = eventsNumber;
             this.identifier = identifier;
+            this.isMatrix = isMatrix;
+        }
+        
+        private Message createMessage(String message, String recipient) {
+            if (isMatrix) {
+                return new MatrixMessage(message, recipient);
+            }
+            return new RawMessage(null, "PRIVMSG", recipient, ':' + message);
         }
 
         @Override
@@ -190,12 +208,12 @@ public class Posti implements SimpleMessageHandler {
                         if (shipment.getEstimatedDeliveryTime() != null) {
                             returnMsg += " Estimated delivery time " + formatDate(shipment.getEstimatedDeliveryTime()) + ".";
                         }
-                        ircConnector.send(new RawMessage(null, "PRIVMSG", recipient, ':' + returnMsg));
+                        connector.send(createMessage(returnMsg, recipient));
                     }
                     
                     if (phase.equals("DELIVERED")){
                         returnMsg = identifier + "Shipment " + shipment.getTrackingCode() + " marked as delivered, ending tracking.";
-                        ircConnector.send(new RawMessage(null, "PRIVMSG", recipient, ':' + returnMsg));
+                        connector.send(createMessage(returnMsg, recipient));
                         break;
                     }
                     

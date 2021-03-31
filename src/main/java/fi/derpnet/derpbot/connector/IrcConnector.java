@@ -1,5 +1,6 @@
 package fi.derpnet.derpbot.connector;
 
+import fi.derpnet.derpbot.bean.Message;
 import fi.derpnet.derpbot.bean.RawMessage;
 import fi.derpnet.derpbot.controller.MainController;
 import java.io.BufferedReader;
@@ -14,7 +15,7 @@ import java.util.Timer;
 import javax.net.ssl.SSLSocketFactory;
 import org.apache.log4j.Logger;
 
-public class IrcConnector {
+public class IrcConnector implements Connector {
 
     public static final int PING_INTERVAL_MS = 60_000;
     public static final int PING_TIMEOUT_MS = 30_000;
@@ -132,7 +133,7 @@ public class IrcConnector {
         }
     }
 
-    public void send(RawMessage msg) {
+    public void send(Message msg) {
         senderThread.send(msg);
     }
 

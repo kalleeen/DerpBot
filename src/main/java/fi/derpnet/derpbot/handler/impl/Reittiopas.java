@@ -2,7 +2,7 @@ package fi.derpnet.derpbot.handler.impl;
 
 import fi.derpnet.derpbot.bean.reittiopas.Leg;
 import fi.derpnet.derpbot.bean.reittiopas.Location;
-import fi.derpnet.derpbot.connector.IrcConnector;
+import fi.derpnet.derpbot.connector.Connector;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.handler.SimpleMultiLineMessageHandler;
 import fi.derpnet.derpbot.util.ReittiopasAPI;
@@ -35,7 +35,7 @@ public class Reittiopas implements SimpleMultiLineMessageHandler {
     }
 
     @Override
-    public List<String> handle(String sender, String recipient, String message, IrcConnector ircConnector) {
+    public List<String> handle(String sender, String recipient, String message, Connector connector) {
         if (!message.startsWith("!reittiopas ")) {
             return null;
         }

@@ -1,5 +1,6 @@
 package fi.derpnet.derpbot.handler.impl;
 
+import fi.derpnet.derpbot.connector.Connector;
 import fi.derpnet.derpbot.connector.IrcConnector;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.handler.SimpleMultiLineMessageHandler;
@@ -41,7 +42,10 @@ public class LinkTitle implements SimpleMultiLineMessageHandler {
     }
 
     @Override
-    public List<String> handle(String sender, String recipient, String message, IrcConnector ircConnector) {
+    public List<String> handle(String sender, String recipient, String message, Connector connector) {
+        if (!(connector instanceof IrcConnector)){
+            return null;
+        }
         if (!message.contains("http://") && !message.contains("https://")) {
             return null;
         }

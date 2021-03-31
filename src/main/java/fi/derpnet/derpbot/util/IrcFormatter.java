@@ -27,4 +27,9 @@ public class IrcFormatter {
     public static String colorize(String string, int foregroundColor, int backgroundColor) {
         return new StringBuilder().append(COLOR).append(foregroundColor).append(',').append(backgroundColor).append(string).append(COLOR).toString();
     }
+    
+    public static String convertHtml(String string){
+        // TODO if actually needed, implement
+        return string.replaceAll("\\<[^>]*>","");
+    }
 }

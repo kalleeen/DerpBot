@@ -1,5 +1,6 @@
 package fi.derpnet.derpbot.handler.impl;
 
+import fi.derpnet.derpbot.connector.Connector;
 import fi.derpnet.derpbot.connector.IrcConnector;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.handler.SimpleMessageHandler;
@@ -27,7 +28,14 @@ public class Sed implements SimpleMessageHandler {
     }
 
     @Override
-    public String handle(String sender, String recipient, String message, IrcConnector ircConnector) {
+    public String handle(String sender, String recipient, String message, Connector connector) {
+        IrcConnector ircConnector;
+        if (connector instanceof IrcConnector) {
+            ircConnector = (IrcConnector)connector;
+        }
+        else {
+            return null;
+        }
         if (!message.startsWith("s/")) {
             Map<String, String> msgMap = latestMessages.get(ircConnector.networkName);
             if (msgMap == null) {

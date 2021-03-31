@@ -1,6 +1,8 @@
 package fi.derpnet.derpbot.connector;
 
+import fi.derpnet.derpbot.bean.Message;
 import fi.derpnet.derpbot.bean.RawMessage;
+import fi.derpnet.derpbot.util.IrcFormatter;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Collection;
@@ -14,7 +16,7 @@ class SenderThread extends Thread {
 
     private final BufferedWriter writer;
     private final int ratelimit;
-    private final BlockingQueue<RawMessage> messageQueue;
+    private final BlockingQueue<Message> messageQueue;
 
     public SenderThread(BufferedWriter writer, int ratelimit) {
         this.writer = writer;
@@ -26,8 +28,9 @@ class SenderThread extends Thread {
     public void run() {
         while (!interrupted()) {
             try {
-                RawMessage nextMsg = messageQueue.take();
-                writer.write(nextMsg.toString());
+                Message nextMsg = messageQueue.take();
+                String formatted = IrcFormatter.convertHtml(nextMsg.toString());
+                writer.write(formatted);
                 writer.write("\r\n");
                 writer.flush();
                 System.out.println(Thread.currentThread().getId() + " > " + nextMsg.toString());
@@ -40,11 +43,11 @@ class SenderThread extends Thread {
         }
     }
 
-    public void send(RawMessage msg) {
+    public void send(Message msg) {
         messageQueue.add(msg);
     }
 
-    public void send(Collection<RawMessage> msgs) {
+    public void send(Collection<Message> msgs) {
         messageQueue.addAll(msgs);
     }
 

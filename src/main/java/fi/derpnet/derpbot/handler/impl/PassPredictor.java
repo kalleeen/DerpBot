@@ -2,10 +2,10 @@ package fi.derpnet.derpbot.handler.impl;
 
 import com.google.gson.Gson;
 import fi.derpnet.derpbot.bean.passpredictor.Pass;
-import fi.derpnet.derpbot.connector.IrcConnector;
+import fi.derpnet.derpbot.connector.Connector;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.handler.SimpleMultiLineMessageHandler;
-import fi.derpnet.derpbot.util.IrcFormatter;
+import fi.derpnet.derpbot.util.IrcSafeHtmlFormatter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -38,14 +38,14 @@ public class PassPredictor implements SimpleMultiLineMessageHandler {
     private static final Function<Long, String> DURATION_FORMAT = seconds -> seconds < 60 ? seconds + " secs" : seconds / 60 + " mins " + seconds % 60 + " secs";
     private static final Function<Long, String> REMAINING_FORMAT = seconds -> seconds < 3600 ? seconds / 60 + " mins" : seconds / 3600 + " hours " + seconds % 3600 / 60 + " mins";
     private static final Function<Pass, String> FORMATTER = pass -> String.format("%s at %s (in %s) pass length %s (ends at %s) with max elevation %s (freq: %s bw: %s)",
-            IrcFormatter.bold(pass.getSatellite()),
-            IrcFormatter.bold(DATE_FORMAT.apply(pass.getBegin())),
-            IrcFormatter.bold(REMAINING_FORMAT.apply(pass.getBegin() - System.currentTimeMillis() / 1000)),
-            IrcFormatter.bold(DURATION_FORMAT.apply(pass.getEnd() - pass.getBegin())),
-            IrcFormatter.bold(DATE_FORMAT.apply(pass.getEnd())),
-            IrcFormatter.bold(pass.getMaxElev() + "º"),
-            IrcFormatter.bold(HZ_FORMAT.apply(pass.getFrequency())),
-            IrcFormatter.bold(HZ_FORMAT.apply(pass.getBandwidth())));
+            IrcSafeHtmlFormatter.bold(pass.getSatellite()),
+            IrcSafeHtmlFormatter.bold(DATE_FORMAT.apply(pass.getBegin())),
+            IrcSafeHtmlFormatter.bold(REMAINING_FORMAT.apply(pass.getBegin() - System.currentTimeMillis() / 1000)),
+            IrcSafeHtmlFormatter.bold(DURATION_FORMAT.apply(pass.getEnd() - pass.getBegin())),
+            IrcSafeHtmlFormatter.bold(DATE_FORMAT.apply(pass.getEnd())),
+            IrcSafeHtmlFormatter.bold(pass.getMaxElev() + "º"),
+            IrcSafeHtmlFormatter.bold(HZ_FORMAT.apply(pass.getFrequency())),
+            IrcSafeHtmlFormatter.bold(HZ_FORMAT.apply(pass.getBandwidth())));
 
     private long lastAll = 0;
 
@@ -69,7 +69,7 @@ public class PassPredictor implements SimpleMultiLineMessageHandler {
     }
 
     @Override
-    public List<String> handle(String sender, String recipient, String message, IrcConnector ircConnector) {
+    public List<String> handle(String sender, String recipient, String message, Connector connector) {
         if (!message.startsWith("!pass")) {
             return null;
         }

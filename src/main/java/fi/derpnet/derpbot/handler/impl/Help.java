@@ -1,6 +1,6 @@
 package fi.derpnet.derpbot.handler.impl;
 
-import fi.derpnet.derpbot.connector.IrcConnector;
+import fi.derpnet.derpbot.connector.Connector;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.handler.SimpleMessageHandler;
 import fi.derpnet.derpbot.util.CommandUtils;
@@ -25,7 +25,7 @@ public class Help implements SimpleMessageHandler {
     }
 
     @Override
-    public String handle(String sender, String recipient, String message, IrcConnector ircConnector) {
+    public String handle(String sender, String recipient, String message, Connector connector) {
         if (!message.startsWith("!help")) {
             return null;
         }

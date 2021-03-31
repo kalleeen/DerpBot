@@ -1,11 +1,11 @@
 package fi.derpnet.derpbot.handler.impl;
 
-import fi.derpnet.derpbot.connector.IrcConnector;
-import fi.derpnet.derpbot.constants.AsciiFormatting;
+import fi.derpnet.derpbot.connector.Connector;
+import fi.derpnet.derpbot.constants.HtmlFormatting;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.handler.SimpleMultiLineMessageHandler;
 import fi.derpnet.derpbot.util.CommandUtils;
-import fi.derpnet.derpbot.util.IrcFormatter;
+import fi.derpnet.derpbot.util.IrcSafeHtmlFormatter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -60,7 +60,7 @@ public class Poikkeusinfo implements SimpleMultiLineMessageHandler {
     }
 
     @Override
-    public List<String> handle(String sender, String recipient, String message, IrcConnector ircConnector) {
+    public List<String> handle(String sender, String recipient, String message, Connector connector) {
         if (!message.startsWith("!poikkeusinfo")) {
             return null;
         }
@@ -148,14 +148,14 @@ public class Poikkeusinfo implements SimpleMultiLineMessageHandler {
         vantaaSisainenDestinations.forEach((destination, lineData) -> {
             result.add(formatLineData("Vantaan sisäisen liikenteen linja %s, klo %s peruttu.%s", destination, lineData));
         });
-        ungrouped.forEach(l -> result.add(l + " " + IrcFormatter.colorize("[ungrouped]", AsciiFormatting.GREY)));
+        ungrouped.forEach(l -> result.add(l + " " + IrcSafeHtmlFormatter.colorize("[ungrouped]", HtmlFormatting.GREY)));
         return result;
     }
 
     private String formatLineData(String formatString, String destination, LineData lineData) {
         String timesString = lineData.times.stream().collect(Collectors.joining(", "));
         String extrasString = lineData.extras.stream().collect(Collectors.joining(","));
-        return String.format(formatString, IrcFormatter.bold(destination), IrcFormatter.bold(timesString), extrasString);
+        return String.format(formatString, IrcSafeHtmlFormatter.bold(destination), IrcSafeHtmlFormatter.bold(timesString), extrasString);
     }
 
     private class LineData {
