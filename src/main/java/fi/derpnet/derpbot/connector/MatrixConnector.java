@@ -52,7 +52,6 @@ public class MatrixConnector implements Connector {
     public void connect() throws IOException {
         matrixClient = new StandaloneClient.Builder().domain(hostname).build();
         matrixClient.getConnectionInfo().setAccessToken(password);
-        matrixClient.account().whoami().getUserId();
                 
         matrixClient.auth().login(username, password.toCharArray());
         matrixClient.profile().setDisplayName(username);
