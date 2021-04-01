@@ -141,7 +141,7 @@ public class MainController {
             String protocol = config.get("network." + networkName + ".protocol");
             switch (protocol) {
                 case "matrix":
-                    hostname = entrySplit[0];
+                    hostname = entry.getValue();
                     String login = config.get("network." + networkName + ".login");
                     String password = config.get("network." + networkName + ".password");
                     connector = new MatrixConnector(hostname, login, password, user, this);
