@@ -28,7 +28,7 @@ public class HttpApiDaemon {
         }
         try {
             MessageHandler messageHandler = new MessageHandler(controller);
-            Server server = new Server(new InetSocketAddress("localhost", HTTP_PORT));
+            Server server = new Server(new InetSocketAddress(HTTP_PORT));
             server.setHandler(new AbstractHandler() {
                 @Override
                 public void handle(String path, Request request, HttpServletRequest servletRequest, HttpServletResponse response) throws IOException, ServletException {
