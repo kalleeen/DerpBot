@@ -64,7 +64,7 @@ public class MainController {
         LOG.info("Loading configuration");
         try {
             config = new HashMap<>();
-            File jarLocation = new File(MainController.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath()).getParentFile();
+            File jarLocation = new File("config");
             File[] configFiles = jarLocation.listFiles(f -> f.isFile() && f.getName().equals("derpbot.properties"));
             if (configFiles == null || configFiles.length == 0) {
                 // look for config files in the parent directory if none found in the current directory, this is useful during development when
@@ -86,7 +86,7 @@ public class MainController {
                 config.put(key, value);
                 LOG.debug(key + '=' + value);
             }
-        } catch (URISyntaxException | IOException ex) {
+        } catch (IOException ex) {
             LOG.error("Failed to read configuration!", ex);
         }
     }

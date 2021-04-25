@@ -56,7 +56,7 @@ public class SslLabs implements SimpleMessageHandler {
                     case "READY":
                         JsonObject endpoint = elem.getAsJsonObject().get("endpoints").getAsJsonArray().iterator().next().getAsJsonObject();
                         try {
-                            return "SSL Labs grade for " + host + ": " + endpoint.get("grade").getAsString();
+                            return "SSL Labs grade for " + host + ": " + endpoint.get("grade").getAsString()+ " : " + LINK_BASE_URL + host;
                         } catch (Exception ex) {
                             return "SSL Labs analysis for " + host + ": " + endpoint.get("statusMessage").getAsString();
                         }

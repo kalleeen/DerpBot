@@ -32,7 +32,7 @@ public class MegaHal implements SimpleMessageHandler {
     public void init(MainController controller) {
         nick = controller.getConfig().get("default.nick");
         randomGenerator = new Random();
-        try (BufferedReader r = new BufferedReader(new FileReader(new File("megabrain.txt")))) {
+        try (BufferedReader r = new BufferedReader(new FileReader(new File("config/megabrain.txt")))) {
 // TODO
 //        try (BufferedReader r = new BufferedReader(new FileReader(new File("megabrain.json")))) {
 //            Gson gson = new GsonBuilder()
