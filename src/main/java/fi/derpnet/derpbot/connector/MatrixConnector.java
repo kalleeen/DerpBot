@@ -61,18 +61,20 @@ public class MatrixConnector implements Connector {
         
         syncLoop = new SyncLoop(matrixClient.sync(), (syncResponse, syncParams) -> {
             // Handle new messages
-            for (Entry<String, JoinedRoom> room : syncResponse.getRooms().getJoin().entrySet()){
-                for (Event event : room.getValue().getTimeline().getEvents()){
-                    if (event instanceof RoomMessage) {
-                        EventContent eventContent = ((RoomMessage)event).getContent();
-                        if (eventContent instanceof RoomMessageContent && !matrixClient.getUserId().equals(((RoomMessage)event).getSender())){
-                            MatrixMessage msg = new MatrixMessage(((RoomMessageContent)eventContent).getBody(), room.getKey());
-                            for (Message response : messageFunction.apply(msg)){
-                                if (response instanceof MatrixMessage) {
-                                    matrixClient.event().sendFormattedMessage(room.getKey(), response.toString(), response.toString());
-                                }
-                                else {
-                                    matrixClient.event().sendMessage(room.getKey(), response.toString());
+            if (syncResponse != null && syncResponse.getRooms() != null && syncResponse.getRooms().getJoin() != null) {
+                for (Entry<String, JoinedRoom> room : syncResponse.getRooms().getJoin().entrySet()){
+                    for (Event event : room.getValue().getTimeline().getEvents()){
+                        if (event instanceof RoomMessage) {
+                            EventContent eventContent = ((RoomMessage)event).getContent();
+                            if (eventContent instanceof RoomMessageContent && !matrixClient.getUserId().equals(((RoomMessage)event).getSender())){
+                                MatrixMessage msg = new MatrixMessage(((RoomMessageContent)eventContent).getBody(), room.getKey());
+                                for (Message response : messageFunction.apply(msg)){
+                                    if (response instanceof MatrixMessage) {
+                                        matrixClient.event().sendFormattedMessage(room.getKey(), response.toString(), response.toString());
+                                    }
+                                    else {
+                                        matrixClient.event().sendMessage(room.getKey(), response.toString());
+                                    }
                                 }
                             }
                         }
@@ -80,12 +82,14 @@ public class MatrixConnector implements Connector {
                 }
             }
             // Handle invites
-            for (Entry<String, InvitedRoom> room : syncResponse.getRooms().getInvite().entrySet()){
-                for (Event event : room.getValue().getInviteState().getEvents()){
-                    if (event instanceof RoomMember){
-                        if ("invite".equals(((RoomMember)event).getContent().getMembership())){
-                            if (!matrixClient.room().joinedRooms().getJoinedRooms().contains(room.getKey())){
-                                 matrixClient.room().joinById(room.getKey(), null);
+            if (syncResponse != null && syncResponse.getRooms() != null && syncResponse.getRooms().getInvite() != null) {
+                for (Entry<String, InvitedRoom> room : syncResponse.getRooms().getInvite().entrySet()){
+                    for (Event event : room.getValue().getInviteState().getEvents()){
+                        if (event instanceof RoomMember){
+                            if ("invite".equals(((RoomMember)event).getContent().getMembership())){
+                                if (!matrixClient.room().joinedRooms().getJoinedRooms().contains(room.getKey())){
+                                     matrixClient.room().joinById(room.getKey(), null);
+                                }
                             }
                         }
                     }
