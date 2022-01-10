@@ -18,11 +18,12 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Random;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class MegaHal implements SimpleMessageHandler {
 
-    private static final Logger LOG = Logger.getLogger(MegaHal.class);
+    private static final Logger LOG = LogManager.getLogger(MegaHal.class);
 
     private MegaHalBrain hal;
     private Random randomGenerator;

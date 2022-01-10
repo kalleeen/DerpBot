@@ -5,7 +5,7 @@ DerpBot is a multi-purpose IRC bot.
 Dependencies:
 
 * Maven (For building from sources)
-* JDK8 (For building from sources, JRE8 enough for just running the built JAR)
+* JDK17 (For building from sources, JRE17 enough for just running the built JAR)
 
 ### Building
 

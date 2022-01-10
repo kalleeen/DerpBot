@@ -22,11 +22,12 @@ import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class MegaHalBrain {
 
-    private static final Logger LOG = Logger.getLogger(MegaHalBrain.class);
+    private static final Logger LOG = LogManager.getLogger(MegaHalBrain.class);
     private static final int CHAIN_LENGTH = 3;
     private static final int SENTENCE_SANITY_LENGTH = 20;
 

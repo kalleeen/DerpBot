@@ -16,7 +16,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -29,7 +30,7 @@ public class ReittiopasAPI {
     private static final ThreadLocal<SimpleDateFormat> apiDateFormat = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd"));
     private static final ThreadLocal<SimpleDateFormat> apiTimeFormat = ThreadLocal.withInitial(() -> new SimpleDateFormat("HH:mm:ss"));
 
-    private static final Logger LOG = Logger.getLogger(ReittiopasAPI.class);
+    private static final Logger LOG = LogManager.getLogger(ReittiopasAPI.class);
     
     /**
      * Find latitude + longitude and description for search term. Searches from

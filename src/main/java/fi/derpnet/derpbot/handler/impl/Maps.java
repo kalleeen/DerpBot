@@ -15,14 +15,15 @@ import fi.derpnet.derpbot.util.ReittiopasAPI;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class Maps implements SimpleMessageHandler {
     
     private ReittiopasAPI reittiopasApi;
     private BingMapsAPI bingApi;
     
-    private static final Logger LOG = Logger.getLogger(Maps.class);
+    private static final Logger LOG = LogManager.getLogger(Maps.class);
 
     @Override
     public void init(MainController controller) {

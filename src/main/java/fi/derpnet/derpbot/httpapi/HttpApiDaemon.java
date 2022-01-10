@@ -9,14 +9,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
 public class HttpApiDaemon {
 
-    private static final Logger LOG = Logger.getLogger(HttpApiDaemon.class);
+    private static final Logger LOG = LogManager.getLogger(HttpApiDaemon.class);
 
     private static final int HTTP_PORT = 8080;
 

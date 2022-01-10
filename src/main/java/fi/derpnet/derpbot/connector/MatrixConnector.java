@@ -22,7 +22,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class MatrixConnector implements Connector {
     
@@ -38,7 +39,7 @@ public class MatrixConnector implements Connector {
     private ExecutorService service;
     private boolean disconnect = false;
     private boolean firstSync = true;
-    private static final Logger LOG = Logger.getLogger(MatrixConnector.class);
+    private static final Logger LOG = LogManager.getLogger(MatrixConnector.class);
     
     public MatrixConnector(String hostname, String loginname, String password, String username, MainController controller){
         this.hostname = hostname;
@@ -70,10 +71,10 @@ public class MatrixConnector implements Connector {
                                 MatrixMessage msg = new MatrixMessage(((RoomMessageContent)eventContent).getBody(), room.getKey());
                                 for (Message response : messageFunction.apply(msg)){
                                     if (response instanceof MatrixMessage) {
-                                        matrixClient.event().sendFormattedMessage(room.getKey(), response.toString(), response.toString());
+                                        matrixClient.event().sendFormattedNotice(room.getKey(), response.toString(), response.toString());
                                     }
                                     else {
-                                        matrixClient.event().sendMessage(room.getKey(), response.toString());
+                                        matrixClient.event().sendNotice(room.getKey(), response.toString());
                                     }
                                 }
                             }
@@ -120,7 +121,7 @@ public class MatrixConnector implements Connector {
     @Override
     public void send(Message msg) {
         if (msg instanceof MatrixMessage){
-            matrixClient.event().sendMessage(((MatrixMessage) msg).getRoomId(), msg.toString());
+            matrixClient.event().sendNotice(((MatrixMessage) msg).getRoomId(), msg.toString());
         }
     }
 

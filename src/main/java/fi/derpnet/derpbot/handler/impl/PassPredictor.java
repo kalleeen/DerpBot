@@ -20,11 +20,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class PassPredictor implements SimpleMultiLineMessageHandler {
 
-    private static final Logger LOG = Logger.getLogger(PassPredictor.class);
+    private static final Logger LOG = LogManager.getLogger(PassPredictor.class);
 
     private static final String API_BASE_URL = "https://passpredictor.24-7.fi";
     private static final String API_URL_NEXT = API_BASE_URL + "/next";

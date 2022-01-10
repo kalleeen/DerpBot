@@ -6,11 +6,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Function;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 class ReceiverThread extends Thread {
 
-    private static final Logger LOG = Logger.getLogger(ReceiverThread.class);
+    private static final Logger LOG = LogManager.getLogger(ReceiverThread.class);
 
     private final BufferedReader reader;
     private final SenderThread senderThread;

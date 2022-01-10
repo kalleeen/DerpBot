@@ -24,7 +24,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.time.DateUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class Pvm implements SimpleMessageHandler {
 
@@ -32,7 +33,7 @@ public class Pvm implements SimpleMessageHandler {
     private static final String PYHA_URL = "http://www.webcal.fi/cal.php?id=1&format=json&start_year=current_year&end_year=current_year&tz=Europe%2FHelsinki";
     private static final String LIPUTUSPAIVA_URL = "http://www.webcal.fi/cal.php?id=2&format=json&start_year=current_year&end_year=current_year&tz=Europe%2FHelsinki";
 
-    private static final Logger LOG = Logger.getLogger(Pvm.class);
+    private static final Logger LOG = LogManager.getLogger(Pvm.class);
     private static final DateFormat apiDf = new SimpleDateFormat("yy-MM-dd");
     private static final DateFormat printDf = new SimpleDateFormat("E dd.MM.yyyy", new Locale("fi", "FI"));
 

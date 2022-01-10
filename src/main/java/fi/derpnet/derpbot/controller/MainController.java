@@ -29,12 +29,13 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import fi.derpnet.derpbot.handler.MessageHandler;
 
 public class MainController {
 
-    private static final Logger LOG = Logger.getLogger(MainController.class);
+    private static final Logger LOG = LogManager.getLogger(MainController.class);
     private List<MessageHandler> messageHandlers;
     private Map<String, String> config;
     private List<Connector> connectors;

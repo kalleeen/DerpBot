@@ -13,7 +13,8 @@ import java.net.Socket;
 import java.util.List;
 import java.util.Timer;
 import javax.net.ssl.SSLSocketFactory;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class IrcConnector implements Connector {
 
@@ -29,7 +30,7 @@ public class IrcConnector implements Connector {
     public final String realname;
     public final int ratelimit;
 
-    private static final Logger LOG = Logger.getLogger(IrcConnector.class);
+    private static final Logger LOG = LogManager.getLogger(IrcConnector.class);
 
     private final MainController controller;
     private final Timer connectionWatcherTimer;

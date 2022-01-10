@@ -1,4 +1,4 @@
-FROM maven:3-openjdk-8
+FROM maven:3-openjdk-17
 
 CMD ["/bin/sh"]
 

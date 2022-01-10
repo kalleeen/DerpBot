@@ -27,7 +27,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class Posti implements SimpleMessageHandler {
@@ -36,7 +37,7 @@ public class Posti implements SimpleMessageHandler {
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private static final int POLLRATE = 600; // 10 min
     
-    Logger logger = Logger.getLogger(Posti.class);
+    Logger logger = LogManager.getLogger(Posti.class);
 
     public void init(MainController controller) {
     }

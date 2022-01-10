@@ -8,11 +8,12 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 class SenderThread extends Thread {
 
-    private static final Logger LOG = Logger.getLogger(SenderThread.class);
+    private static final Logger LOG = LogManager.getLogger(SenderThread.class);
 
     private final BufferedWriter writer;
     private final int ratelimit;

@@ -16,7 +16,8 @@ import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.stream.Collectors;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,7 +29,7 @@ public class BingMapsAPI {
     
     private static final ThreadLocal<SimpleDateFormat> apiDateFormat = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
     
-    private static final Logger LOG = Logger.getLogger(BingMapsAPI.class);
+    private static final Logger LOG = LogManager.getLogger(BingMapsAPI.class);
     
     public BingMapsAPI(String apiKey){
         this.bingMapsAPIKey = apiKey;
