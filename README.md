@@ -1,6 +1,6 @@
 # DerpBot
 
-DerpBot is a multi-purpose IRC bot.
+DerpBot is a multi-purpose Matrix/IRC bot.
 
 Dependencies:
 
@@ -14,6 +14,30 @@ Execute
 ```sh
 mvn clean package
 ```
+
+### Docker
+
+DerpBot can be built and run using docker.
+
+Building using Docker:
+
+```sh
+docker build .
+```
+
+An example docker-compose (docker-compose.example.yml) is provided as a base for using docker-compose to run DerpBot. Create your compose-file and build DerpBot using:
+
+```sh
+docker-compose build
+```
+
+And run it with:
+
+```sh
+docker-compose docker-compose up -d
+```
+
+/derpbot/config is the location for config-files when using Docker. DerpBot can be combined with Pantalaimon (https://github.com/matrix-org/pantalaimon/) to support channels using end-to-end encryption in Matrix.
 
 ### "Installation"
 
@@ -57,6 +81,6 @@ mvn compile exec:java
 
 The basic concept of creating a new feature is to create a new class under fi.derpnet.derpbot.handler.impl and implement one of the following interfaces (which ever suits your needs best), and add the class to HandlerRegistry. (This could be replaced with some sort of dynamic scanning of the classpath for compatible interfaces...)
 
-* **RawMessageHandler** - handles any RAW message that comes from the IRC server
+* **RawMessageHandler** - handles any RAW message that comes from the Matrix/IRC server
 * **SimpleMessageHandler** - handles regular PRIVMSG messages (both on channels and in queries and sends a single-line response
 * **SimpleMultiLineMessageHandler** - same as above but is capable of sending multiple lines of response
