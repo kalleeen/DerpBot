@@ -3,5 +3,14 @@
     "config:base",
     ":disableRateLimiting",
     ":rebaseStalePrs"
+  ],
+  "timezone": "Europe/Helsinki",
+  "schedule": ["after 4pm every weekday", "every weekend"],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor","patch"],
+      "schedule": ["after 4pm and before 6pm on friday"],
+      "groupName": "deps (weekly minor & patch)"
+    }
   ]
 }
