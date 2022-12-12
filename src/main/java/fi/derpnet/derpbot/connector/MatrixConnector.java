@@ -72,8 +72,11 @@ public class MatrixConnector implements Connector {
                                     && !matrixClient.getUserId().equals(((RoomMessage)event).getSender())){
                                 MatrixMessage msg = new MatrixMessage(((RoomMessageContent)eventContent).getBody(), room.getKey());
                                 for (Message response : messageFunction.apply(msg)){
+                                    if (response == null) {
+                                        continue;
+                                    }
                                     if (response instanceof MatrixMessage) {
-                                        matrixClient.event().sendFormattedNotice(room.getKey(), response.toString(), response.toString());
+                                        matrixClient.event().sendFormattedNotice(room.getKey(), response.toString(), ((MatrixMessage) response).getHtmlMessage() != null ? ((MatrixMessage) response).getHtmlMessage() : response.toString());
                                     }
                                     else {
                                         matrixClient.event().sendNotice(room.getKey(), response.toString());
