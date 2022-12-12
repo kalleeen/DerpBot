@@ -13,6 +13,7 @@ import fi.derpnet.derpbot.connector.Connector;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.handler.AdvancedMessageHandler;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.stream.Collectors;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -29,6 +30,7 @@ public class Katkot implements AdvancedMessageHandler {
     
     private static final String API_BASE_URL = "https://enerity-api.azureedge.net/outagemap/tailored/summary/";
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+    private static final DecimalFormat df = new DecimalFormat("0.00");
     
     Logger logger = LogManager.getLogger(Katkot.class);
     
@@ -68,6 +70,13 @@ public class Katkot implements AdvancedMessageHandler {
             return new MatrixMessage("Getting response from Energiateollisuus failed", recipient);
         }
         
+        Integer totalOutages = outages.getCompanies().stream().filter(company -> company.getTotal() != null).map(Company::getTotal).collect(Collectors.summingInt(Integer::intValue));
+        Integer totalCustomers = outages.getCompanies().stream().map(Company::getCustomers).collect(Collectors.summingInt(Integer::intValue));
+        if (totalOutages == null || totalOutages == 0) {
+            return new MatrixMessage("Ei raportoituja katkoksia", recipient);
+        }
+        double totalPercentage = totalOutages / totalCustomers;
+        
         StringBuilder htmlResponse = new StringBuilder();
         StringBuilder textResponse = new StringBuilder();
         // Header
@@ -75,6 +84,7 @@ public class Katkot implements AdvancedMessageHandler {
                 "<tr>" +
                 "<th>Yhtiö&nbsp;</th>" +
                 "<th>Sähköttä&nbsp;</th>" +
+                "<th>Osuus&nbsp;</th>" +
                 "<th>Häiriökartta</th>" +
                 "</tr>");
         // Values
@@ -82,15 +92,18 @@ public class Katkot implements AdvancedMessageHandler {
             htmlResponse.append("<tr>" +
                     "<td>" + company.getName() + "&nbsp;</td>" +
                     "<td>" + company.getTotal() + "&nbsp;</td>" +
+                    "<td>" + df.format(100d - company.getServicelevel()) + "%&nbsp;</td>" +
                     "<td><a href=\"" + company.getOutagemap() + "\">Häiriökartta</a></td>" +
                     "</tr>");
             textResponse.append(company.getName() + ": " + company.getTotal() + " asiakasta sähköttä. Häiriökartta: " + company.getOutagemap() + "\n");
             }
         );
+        
         // Footer
         htmlResponse.append("<tr>" +
-                "<td>Yhteensä:</td>" +
-                "<td>" + outages.getCompanies().stream().filter(company -> company.getTotal() != null).map(Company::getTotal).collect(Collectors.summingInt(Integer::intValue)) + "</td>" +
+                "<td>Kaikki yhtiöt</td>" +
+                "<td>" + totalOutages + "</td>" +
+                "<td>" + df.format(totalPercentage) + "%</td>" +
                 "<td></td>" +
                 "</tr>");
         htmlResponse.append("</table>");
