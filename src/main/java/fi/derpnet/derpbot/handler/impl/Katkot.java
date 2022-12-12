@@ -7,11 +7,13 @@ package fi.derpnet.derpbot.handler.impl;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import fi.derpnet.derpbot.bean.MatrixMessage;
+import fi.derpnet.derpbot.bean.outages.Company;
 import fi.derpnet.derpbot.bean.outages.Outages;
 import fi.derpnet.derpbot.connector.Connector;
 import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.handler.AdvancedMessageHandler;
 import java.io.IOException;
+import java.util.stream.Collectors;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -71,9 +73,9 @@ public class Katkot implements AdvancedMessageHandler {
         // Header
         htmlResponse.append("<table>" +
                 "<tr>" +
-                "<td>Yhtiö&nbsp;</td>" +
-                "<td>Sähköttä&nbsp;</td>" +
-                "<td>Häiriökartta</td>" +
+                "<th>Yhtiö&nbsp;</th>" +
+                "<th>Sähköttä&nbsp;</th>" +
+                "<th>Häiriökartta</th>" +
                 "</tr>");
         // Values
         outages.getCompanies().stream().filter(company -> company.getTotal() != null).forEach(company -> {
@@ -86,6 +88,11 @@ public class Katkot implements AdvancedMessageHandler {
             }
         );
         // Footer
+        htmlResponse.append("<tr>" +
+                "<td>Yhteensä:</td>" +
+                "<td>" + outages.getCompanies().stream().filter(company -> company.getTotal() != null).map(Company::getTotal).collect(Collectors.summingInt(Integer::intValue)) + "</td>" +
+                "<td></td>" +
+                "</tr>");
         htmlResponse.append("</table>");
         return new MatrixMessage(textResponse.toString(), htmlResponse.toString(), recipient);
     }
