@@ -1,8 +1,7 @@
 {
   "extends": [
     "config:base",
-    ":disableRateLimiting",
-    ":rebaseStalePrs"
+    ":disableRateLimiting"
   ],
   "timezone": "Europe/Helsinki",
   "schedule": ["after 4pm every weekday", "every weekend"],
