@@ -4,16 +4,19 @@ import fi.derpnet.derpbot.controller.MainController;
 import fi.derpnet.derpbot.httpapi.handler.MessageHandler;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.io.IOUtils;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.util.Callback;
 
 public class HttpApiDaemon {
 
@@ -32,17 +35,19 @@ public class HttpApiDaemon {
             Server server = new Server(new InetSocketAddress(HTTP_PORT));
             server.setHandler(new AbstractHandler() {
                 @Override
-                public void handle(String path, Request request, HttpServletRequest servletRequest, HttpServletResponse response) throws IOException, ServletException {
-                    if (secret.equals(request.getHeader("Secret"))) {
-                        String requestBody = IOUtils.toString(request.getReader());
-                        switch (path) {
+                public boolean handle(Request request, Response response, Callback callback) throws IOException {
+                    if (secret.equals(request.getHeaders().get("Secret"))) {
+                        String requestBody = new BufferedReader(new InputStreamReader(Content.Source.asInputStream(request), StandardCharsets.UTF_8))
+                                .lines().collect(Collectors.joining("\n"));
+                        switch (request.getHttpURI().getPath()) {
                             case "/msg":
                                 messageHandler.handle(requestBody);
                                 break;
                         }
                     }
                     response.setStatus(200);
-                    request.setHandled(true);
+                    callback.succeeded();
+                    return true;
                 }
             });
             server.start();
